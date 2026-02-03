@@ -1,0 +1,4 @@
+project_id = "hhcmdioptminplgnlsgv"
+
+[functions.agent-decision]
+verify_jwt = false
