@@ -2,3 +2,9 @@ project_id = "hhcmdioptminplgnlsgv"
 
 [functions.agent-decision]
 verify_jwt = false
+
+[functions.building-decision]
+verify_jwt = false
+
+[functions.system-agents]
+verify_jwt = false
