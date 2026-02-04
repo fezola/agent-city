@@ -1,4 +1,4 @@
-import { WorldState } from '@/types/simulation';
+import { WorldState, CIV_TOKEN } from '@/types/simulation';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
@@ -25,7 +25,7 @@ export function StatsStrip({ worldState }: StatsStripProps) {
     <div className="flex items-center h-8 px-4 border-b bg-muted/20 gap-3 overflow-x-auto scrollbar-hide">
       <Stat
         label="Treasury"
-        value={worldState.treasury_balance.toLocaleString()}
+        value={`${worldState.treasury_balance.toLocaleString()} ${CIV_TOKEN.symbol}`}
         danger={worldState.treasury_balance < 3000}
       />
       <Separator orientation="vertical" className="h-3" />
@@ -36,12 +36,12 @@ export function StatsStrip({ worldState }: StatsStripProps) {
       <Separator orientation="vertical" className="h-3" />
       <Stat
         label="Salary"
-        value={worldState.salary_rate.toString()}
+        value={`${worldState.salary_rate} ${CIV_TOKEN.symbol}`}
       />
       <Separator orientation="vertical" className="h-3" />
       <Stat
         label="Fee"
-        value={worldState.participation_fee.toString()}
+        value={`${worldState.participation_fee} ${CIV_TOKEN.symbol}`}
       />
       <Separator orientation="vertical" className="h-3" />
       <Stat

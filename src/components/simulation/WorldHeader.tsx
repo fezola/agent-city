@@ -1,4 +1,4 @@
-import { WorldState } from '@/types/simulation';
+import { WorldState, CIV_TOKEN } from '@/types/simulation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -91,7 +91,7 @@ export function WorldHeader({
           <CardContent className="p-4">
             <div className="text-xs text-emerald-200/70 uppercase tracking-wide">Treasury</div>
             <div className="text-2xl font-bold text-emerald-100">
-              {worldState.treasury_balance.toLocaleString()}
+              {worldState.treasury_balance.toLocaleString()} <span className="text-sm font-normal text-emerald-300/70">{CIV_TOKEN.symbol}</span>
             </div>
           </CardContent>
         </Card>

@@ -1,4 +1,4 @@
-import { Agent, AgentMemory, Mood } from '@/types/simulation';
+import { Agent, AgentMemory, Mood, CIV_TOKEN } from '@/types/simulation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -101,7 +101,7 @@ export function AgentCard({ agent, memories = [], isHighlighted }: AgentCardProp
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Balance</span>
             <span className="font-mono font-bold text-lg">
-              {agent.balance.toLocaleString()}
+              {agent.balance.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">{CIV_TOKEN.symbol}</span>
             </span>
           </div>
         )}

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { getCivPromptContext, CIV_TOKEN_SYMBOL } from "../_shared/civ-balance.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -40,14 +41,16 @@ function buildWorkerBuildingPrompt(worldState: WorldState, memories: Memory[]): 
 
   const existingBuilding = worldState.existing_building;
   const buildingStatus = existingBuilding
-    ? `You own a Level ${existingBuilding.level} ${existingBuilding.building_type} (${existingBuilding.is_active ? 'active' : 'inactive'}). You can upgrade it (cost: ${existingBuilding.building_type === 'housing' ? 200 : 350} × ${existingBuilding.level} = ${(existingBuilding.building_type === 'housing' ? 200 : 350) * existingBuilding.level} tokens) if level < 3.`
+    ? `You own a Level ${existingBuilding.level} ${existingBuilding.building_type} (${existingBuilding.is_active ? 'active' : 'inactive'}). You can upgrade it (cost: ${existingBuilding.building_type === 'housing' ? 200 : 350} × ${existingBuilding.level} = ${(existingBuilding.building_type === 'housing' ? 200 : 350) * existingBuilding.level} ${CIV_TOKEN_SYMBOL}) if level < 3.`
     : 'You do not own any building yet.';
 
   return `You are a Worker Agent considering a building investment.
 
+${getCivPromptContext('worker')}
+
 You can build ONE of these structures:
-- HOUSING (cost: 200 tokens): Boosts worker satisfaction by +5% per level per day. Maintenance: 10/day per level.
-- FACTORY (cost: 350 tokens): Gives you +15 bonus earnings per level each day you work. Maintenance: 20/day per level.
+- HOUSING (cost: 200 ${CIV_TOKEN_SYMBOL}): Boosts worker satisfaction by +5% per level per day. Maintenance: 10 ${CIV_TOKEN_SYMBOL}/day per level.
+- FACTORY (cost: 350 ${CIV_TOKEN_SYMBOL}): Gives you +15 ${CIV_TOKEN_SYMBOL} bonus earnings per level each day you work. Maintenance: 20 ${CIV_TOKEN_SYMBOL}/day per level.
 
 ${buildingStatus}
 
@@ -56,17 +59,17 @@ ${memoryStr || 'No significant memories yet.'}
 
 Current State:
 - Day: ${worldState.day}
-- Your Balance: ${worldState.balance}
-- Salary: ${worldState.salary_rate}
+- Your Balance: ${worldState.balance} ${CIV_TOKEN_SYMBOL}
+- Salary: ${worldState.salary_rate} ${CIV_TOKEN_SYMBOL}
 - Tax Rate: ${(worldState.tax_rate * 100).toFixed(0)}%
-- Participation Fee: ${worldState.participation_fee}
+- Participation Fee: ${worldState.participation_fee} ${CIV_TOKEN_SYMBOL}
 - City Health: ${worldState.city_health}%
 
 Consider:
 - Can you afford the building AND still pay daily fees?
 - Will the ongoing benefit outweigh the maintenance cost?
 - Housing helps the whole city; Factory helps only you.
-- Skip if your balance is too low or the investment is risky.`;
+- Skip if your CIV balance is too low or the investment is risky.`;
 }
 
 function buildMerchantBuildingPrompt(worldState: WorldState, memories: Memory[]): string {
@@ -76,13 +79,15 @@ function buildMerchantBuildingPrompt(worldState: WorldState, memories: Memory[])
 
   const existingBuilding = worldState.existing_building;
   const buildingStatus = existingBuilding
-    ? `You own a Level ${existingBuilding.level} Market (${existingBuilding.is_active ? 'active' : 'inactive'}). You can upgrade it (cost: ${300 * existingBuilding.level} tokens) if level < 3.`
+    ? `You own a Level ${existingBuilding.level} Market (${existingBuilding.is_active ? 'active' : 'inactive'}). You can upgrade it (cost: ${300 * existingBuilding.level} ${CIV_TOKEN_SYMBOL}) if level < 3.`
     : 'You do not own any building yet.';
 
   return `You are a Merchant Agent considering a building investment.
 
+${getCivPromptContext('merchant')}
+
 You can build:
-- MARKET (cost: 300 tokens): Boosts your profit by +10% per level. Maintenance: 15/day per level.
+- MARKET (cost: 300 ${CIV_TOKEN_SYMBOL}): Boosts your profit by +10% per level. Maintenance: 15 ${CIV_TOKEN_SYMBOL}/day per level.
 
 ${buildingStatus}
 
@@ -91,16 +96,16 @@ ${memoryStr || 'No significant memories yet.'}
 
 Current State:
 - Day: ${worldState.day}
-- Your Balance: ${worldState.balance}
+- Your Balance: ${worldState.balance} ${CIV_TOKEN_SYMBOL}
 - Tax Rate: ${(worldState.tax_rate * 100).toFixed(0)}%
-- Participation Fee: ${worldState.participation_fee}
+- Participation Fee: ${worldState.participation_fee} ${CIV_TOKEN_SYMBOL}
 - Worker Satisfaction: ${worldState.worker_satisfaction}%
 - City Health: ${worldState.city_health}%
 
 Consider:
 - Can you afford the market AND still pay daily fees?
 - Higher profit multiplier compounds over time.
-- Skip if your balance is too low or market conditions are unstable.`;
+- Skip if your CIV balance is too low or market conditions are unstable.`;
 }
 
 function buildGovernorBuildingPrompt(worldState: WorldState, memories: Memory[]): string {
@@ -110,14 +115,16 @@ function buildGovernorBuildingPrompt(worldState: WorldState, memories: Memory[])
 
   const existingBuilding = worldState.existing_building;
   const buildingStatus = existingBuilding
-    ? `You have a Level ${existingBuilding.level} ${existingBuilding.building_type === 'gate' ? 'City Gate' : 'Power Hub'} (${existingBuilding.is_active ? 'active' : 'inactive'}). You can upgrade it (cost: ${existingBuilding.building_type === 'gate' ? 500 : 800} × ${existingBuilding.level} = ${(existingBuilding.building_type === 'gate' ? 500 : 800) * existingBuilding.level} tokens from treasury) if level < 3.`
+    ? `You have a Level ${existingBuilding.level} ${existingBuilding.building_type === 'gate' ? 'City Gate' : 'Power Hub'} (${existingBuilding.is_active ? 'active' : 'inactive'}). You can upgrade it (cost: ${existingBuilding.building_type === 'gate' ? 500 : 800} × ${existingBuilding.level} = ${(existingBuilding.building_type === 'gate' ? 500 : 800) * existingBuilding.level} ${CIV_TOKEN_SYMBOL} from treasury) if level < 3.`
     : 'You have not built any infrastructure yet.';
 
   return `You are the Governor Agent considering infrastructure investment from the city treasury.
 
+${getCivPromptContext('governor')}
+
 You can build ONE of these structures:
-- GATE (cost: 500 from treasury): Improves city health by +3% per level per day. Maintenance: 25/day per level from treasury.
-- POWER_HUB (cost: 800 from treasury): Reduces ALL building maintenance costs in the city by 10% per level. Maintenance: 40/day per level from treasury.
+- GATE (cost: 500 ${CIV_TOKEN_SYMBOL} from treasury): Improves city health by +3% per level per day. Maintenance: 25 ${CIV_TOKEN_SYMBOL}/day per level from treasury.
+- POWER_HUB (cost: 800 ${CIV_TOKEN_SYMBOL} from treasury): Reduces ALL building maintenance costs in the city by 10% per level. Maintenance: 40 ${CIV_TOKEN_SYMBOL}/day per level from treasury.
 
 ${buildingStatus}
 
@@ -126,7 +133,7 @@ ${memoryStr || 'No significant memories yet.'}
 
 Current State:
 - Day: ${worldState.day}
-- Treasury: ${worldState.treasury_balance}
+- Treasury: ${worldState.treasury_balance} ${CIV_TOKEN_SYMBOL}
 - Tax Rate: ${(worldState.tax_rate * 100).toFixed(0)}%
 - City Health: ${worldState.city_health}%
 - Worker Satisfaction: ${worldState.worker_satisfaction}%

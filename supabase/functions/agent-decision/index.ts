@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { getCivPromptContext, CIV_TOKEN_SYMBOL } from "../_shared/civ-balance.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,6 +34,8 @@ function buildGovernorPrompt(worldState: WorldState, memories: Memory[]): string
 
   return `You are the Governor Agent of a gated autonomous agent world.
 
+${getCivPromptContext('governor')}
+
 Your responsibilities:
 - Define economic rules (taxes, salaries, fees)
 - Maintain city stability
@@ -50,10 +53,10 @@ ${memoryStr || 'No significant memories yet.'}
 
 Current World State:
 - Day: ${worldState.day}
-- Treasury Balance: ${worldState.treasury_balance}
+- Treasury Balance: ${worldState.treasury_balance} ${CIV_TOKEN_SYMBOL}
 - Tax Rate: ${(worldState.tax_rate * 100).toFixed(0)}%
-- Salary Rate: ${worldState.salary_rate}
-- Participation Fee: ${worldState.participation_fee}
+- Salary Rate: ${worldState.salary_rate} ${CIV_TOKEN_SYMBOL}
+- Participation Fee: ${worldState.participation_fee} ${CIV_TOKEN_SYMBOL}
 - Worker Satisfaction: ${worldState.worker_satisfaction}%
 - City Health: ${worldState.city_health}%
 
@@ -73,8 +76,10 @@ function buildWorkerPrompt(worldState: WorldState, memories: Memory[]): string {
 
   return `You are a Worker Agent inside a gated autonomous agent world.
 
+${getCivPromptContext('worker')}
+
 Your goals:
-- Earn enough tokens to survive
+- Earn enough CIV tokens to survive
 - Pay participation fees
 - Avoid exploitation
 - Improve your future position
@@ -89,21 +94,21 @@ ${memoryStr || 'No significant memories yet.'}
 
 Current World State:
 - Day: ${worldState.day}
-- Your Balance: ${worldState.balance}
-- Salary: ${worldState.salary_rate}
+- Your Balance: ${worldState.balance} ${CIV_TOKEN_SYMBOL}
+- Salary: ${worldState.salary_rate} ${CIV_TOKEN_SYMBOL}
 - Tax Rate: ${(worldState.tax_rate * 100).toFixed(0)}%
-- Participation Fee: ${worldState.participation_fee}
+- Participation Fee: ${worldState.participation_fee} ${CIV_TOKEN_SYMBOL}
 - Inflation: ${worldState.inflation}
 - City Health: ${worldState.city_health}%
 
 Wagering:
-You may optionally wager tokens predicting:
+You may optionally wager CIV tokens predicting:
 - Tax increases (tax_up) or decreases (tax_down)
 - Salary changes (salary_up, salary_down)
 - City stability or collapse
 
 Choose ONE main action and optionally a wager.
-Wager amount should be 0-50 tokens max if you wager.`;
+Wager amount should be 0-50 CIV max if you wager.`;
 }
 
 function buildMerchantPrompt(worldState: WorldState, memories: Memory[]): string {
@@ -112,6 +117,8 @@ function buildMerchantPrompt(worldState: WorldState, memories: Memory[]): string
   ).join('\n');
 
   return `You are a Merchant Agent in a gated autonomous agent world.
+
+${getCivPromptContext('merchant')}
 
 Your goals:
 - Maximize profit
@@ -129,10 +136,10 @@ ${memoryStr || 'No significant memories yet.'}
 
 Current World State:
 - Day: ${worldState.day}
-- Your Balance: ${worldState.balance}
-- Average Worker Balance: ${worldState.avg_worker_balance}
+- Your Balance: ${worldState.balance} ${CIV_TOKEN_SYMBOL}
+- Average Worker Balance: ${worldState.avg_worker_balance} ${CIV_TOKEN_SYMBOL}
 - Tax Rate: ${(worldState.tax_rate * 100).toFixed(0)}%
-- Participation Fee: ${worldState.participation_fee}
+- Participation Fee: ${worldState.participation_fee} ${CIV_TOKEN_SYMBOL}
 - Worker Satisfaction: ${worldState.worker_satisfaction}%
 - City Health: ${worldState.city_health}%
 

@@ -1,4 +1,4 @@
-import { Agent, WorldEvent, Building, BUILDING_LABELS, Mood, AgentType } from '@/types/simulation';
+import { Agent, WorldEvent, Building, BUILDING_LABELS, Mood, AgentType, CIV_TOKEN } from '@/types/simulation';
 import { AGENT_INFO } from './cityGridData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -156,7 +156,7 @@ export function CitySidePanel({ agents, buildings, events, currentDay }: CitySid
                             </span>
                             <span className="text-zinc-500">|</span>
                             <span className="text-zinc-200 font-mono">
-                              {liveAgent.balance.toLocaleString()} tokens
+                              {liveAgent.balance.toLocaleString()} {CIV_TOKEN.symbol}
                             </span>
                             {liveAgent.last_action && (
                               <>
@@ -183,9 +183,11 @@ export function CitySidePanel({ agents, buildings, events, currentDay }: CitySid
                   Controls
                 </h3>
                 <div className="space-y-1.5 text-sm text-zinc-200">
-                  <div><span className="text-white font-semibold">Drag</span> - Pan the city view</div>
+                  <div><span className="text-white font-semibold">Left-drag</span> - Pan the city view</div>
+                  <div><span className="text-white font-semibold">Right-drag</span> - Rotate the view (any angle)</div>
                   <div><span className="text-white font-semibold">Scroll</span> - Zoom in/out</div>
                   <div><span className="text-white font-semibold">Hover agents</span> - See details</div>
+                  <div><span className="text-white font-semibold">Reset View</span> - Snap back to default</div>
                 </div>
               </div>
 
@@ -243,7 +245,7 @@ export function CitySidePanel({ agents, buildings, events, currentDay }: CitySid
                       <Icon className={cn('h-4 w-4 flex-shrink-0', TYPE_COLORS[agent.agent_type])} />
                       <span className="font-bold text-white truncate flex-1">{agent.name}</span>
                       <span className="text-zinc-300 font-mono text-xs">
-                        {agent.balance.toLocaleString()}
+                        {agent.balance.toLocaleString()} {CIV_TOKEN.symbol}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 ml-7 text-xs text-zinc-300">

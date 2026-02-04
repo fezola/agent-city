@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Agent, AgentMemory, Mood } from '@/types/simulation';
+import { Agent, AgentMemory, Mood, CIV_TOKEN } from '@/types/simulation';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -78,7 +78,7 @@ function AgentRow({
       {/* Balance */}
       <div className="w-16 text-right mr-3">
         {agent.agent_type !== 'governor' ? (
-          <span className="text-xs font-mono">{agent.balance.toLocaleString()}</span>
+          <span className="text-xs font-mono">{agent.balance.toLocaleString()} {CIV_TOKEN.symbol}</span>
         ) : (
           <span className="text-xs text-muted-foreground">—</span>
         )}

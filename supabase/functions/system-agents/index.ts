@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { getCivPromptContext, CIV_TOKEN_SYMBOL } from "../_shared/civ-balance.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -39,6 +40,9 @@ function buildChaosPrompt(worldState: WorldState, memories: SystemMemory[]): str
 
   return `You are the Chaos Orchestrator for a gated autonomous agent world.
 
+${getCivPromptContext('system')}
+Treasury depletion affects real token backing. Consider the permanence of token loss when choosing events.
+
 Your purpose:
 - Introduce disruptive but plausible events
 - Stress-test agent coordination
@@ -58,9 +62,9 @@ ${memoryStr || 'No chaos events yet.'}
 
 Current World State:
 - Day: ${worldState.day}
-- Treasury Balance: ${worldState.treasury_balance}
+- Treasury Balance: ${worldState.treasury_balance} ${CIV_TOKEN_SYMBOL}
 - Tax Rate: ${(worldState.tax_rate * 100).toFixed(0)}%
-- Participation Fee: ${worldState.participation_fee}
+- Participation Fee: ${worldState.participation_fee} ${CIV_TOKEN_SYMBOL}
 - Inflation: ${worldState.inflation}
 - City Health: ${worldState.city_health}%
 - Worker Satisfaction: ${worldState.worker_satisfaction}%
@@ -110,6 +114,9 @@ const chaosTool = {
 function buildCollapsePrompt(worldState: WorldState, exitRate: number): string {
   return `You are the Collapse Evaluator for an autonomous agent world.
 
+${getCivPromptContext('system')}
+Collapse means permanent loss of real CIV token value for all agents. Declaring collapse is irreversible.
+
 Your role:
 - Assess systemic stability
 - Declare collapse only when recovery is unlikely
@@ -117,7 +124,7 @@ Your role:
 
 Collapse Indicators:
 - City health critically low (below 20%)
-- Treasury insolvency (below 1000)
+- Treasury insolvency (below 1000 ${CIV_TOKEN_SYMBOL})
 - Mass agent exit (exit rate above 0.5)
 - Sustained unrest (satisfaction below 30%)
 - Economic paralysis (multiple indicators red)
@@ -125,7 +132,7 @@ Collapse Indicators:
 Current World Metrics:
 - Day: ${worldState.day}
 - City Health: ${worldState.city_health}%
-- Treasury Balance: ${worldState.treasury_balance}
+- Treasury Balance: ${worldState.treasury_balance} ${CIV_TOKEN_SYMBOL}
 - Agent Exit Rate: ${(exitRate * 100).toFixed(0)}%
 - Worker Satisfaction: ${worldState.worker_satisfaction}%
 - Merchant Stability: ${worldState.merchant_stability}%
@@ -178,6 +185,9 @@ function buildNarrativePrompt(worldState: WorldState, dayEvents: DayEvents): str
 
   return `You are the Narrative Summarizer for an autonomous agent world.
 
+${getCivPromptContext('system')}
+Reference CIV as the currency in your narrative. Token losses are permanent and should be reported as such.
+
 Your job:
 - Translate raw events into a human-readable story
 - Highlight cause-and-effect
@@ -187,7 +197,7 @@ Today's Events (Day ${worldState.day}):
 ${eventsStr || 'A quiet day with no major events.'}
 
 End of Day Metrics:
-- Treasury: ${worldState.treasury_balance}
+- Treasury: ${worldState.treasury_balance} ${CIV_TOKEN_SYMBOL}
 - City Health: ${worldState.city_health}%
 - Worker Satisfaction: ${worldState.worker_satisfaction}%
 
@@ -196,7 +206,8 @@ Rules:
 - No technical jargon
 - Focus on consequences and what it means for the city
 - Be neutral, not overly dramatic
-- Write like a news brief or journal entry`;
+- Write like a news brief or journal entry
+- Use "CIV" when referring to the currency`;
 }
 
 const narrativeTool = {
@@ -223,6 +234,9 @@ function buildEmergencePrompt(worldState: WorldState, dayEvents: DayEvents, rece
   const patternsStr = recentPatterns.join('\n');
 
   return `You are the Emergence Evaluator.
+
+${getCivPromptContext('system')}
+Behaviors around token conservation, risk aversion, and collective resource management are particularly significant.
 
 Your task:
 - Identify behaviors that were not explicitly programmed

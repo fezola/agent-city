@@ -282,3 +282,13 @@ export const AGENT_ALLOWED_BUILDINGS: Record<AgentType, BuildingType[]> = {
   merchant: ['market'],
   governor: ['gate', 'power_hub'],
 };
+
+// ==================== CIV TOKEN ====================
+
+export const CIV_TOKEN = {
+  name: "Civic Credit",
+  symbol: "CIV",
+  contract: "0x1B4446578e27bfd27338222B291C8efFc89D7777",
+  chain: "Monad",
+  decimals: 18,
+} as const;

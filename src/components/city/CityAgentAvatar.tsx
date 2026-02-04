@@ -1,10 +1,12 @@
-import { Agent, AgentType, Mood } from '@/types/simulation';
-import { Crown, Hammer, ShoppingCart, Skull } from 'lucide-react';
+import { Agent, AgentType, Mood, CIV_TOKEN } from '@/types/simulation';
+import { Crown, Hammer, ShoppingCart, Skull, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CityAgentAvatarProps {
   agent: Agent;
   isPhaseActive?: boolean;
+  /** Show the speech bubble with last_action_reason */
+  showSpeech?: boolean;
 }
 
 const MOOD_COLORS: Record<Mood, string> = {
@@ -43,6 +45,12 @@ const TYPE_BADGE_COLORS: Record<AgentType, string> = {
   merchant: 'bg-purple-600 text-purple-100',
 };
 
+const SPEECH_BORDER: Record<AgentType, string> = {
+  governor: 'border-amber-500',
+  worker: 'border-blue-500',
+  merchant: 'border-purple-500',
+};
+
 const ACTION_LABELS: Record<string, string> = {
   work: 'Working',
   protest: 'Protesting!',
@@ -60,15 +68,38 @@ const ACTION_LABELS: Record<string, string> = {
   stabilize: 'Stabilizing',
 };
 
-export function CityAgentAvatar({ agent, isPhaseActive }: CityAgentAvatarProps) {
+export function CityAgentAvatar({ agent, isPhaseActive, showSpeech }: CityAgentAvatarProps) {
   const Icon = agent.is_alive ? TYPE_ICONS[agent.agent_type] : Skull;
   const mood = agent.mood as Mood;
   const actionLabel = agent.last_action ? ACTION_LABELS[agent.last_action] || agent.last_action : null;
+  const reason = agent.last_action_reason;
 
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 10 }}>
+      {/* Speech bubble - shows agent's reasoning */}
+      {showSpeech && reason && agent.is_alive && (
+        <div className="iso-label absolute -top-8 left-1/2 -translate-x-1/2 z-50">
+          <div className={cn(
+            'speech-bubble relative bg-zinc-800 border rounded-lg px-2.5 py-1.5 shadow-xl max-w-[180px]',
+            SPEECH_BORDER[agent.agent_type],
+          )}>
+            <div className="flex items-start gap-1.5">
+              <MessageCircle className="h-3 w-3 text-zinc-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <div className="text-[9px] font-bold text-white mb-0.5">{agent.name}</div>
+                <div className="text-[9px] text-zinc-200 leading-relaxed">
+                  {reason.length > 100 ? reason.slice(0, 97) + '...' : reason}
+                </div>
+              </div>
+            </div>
+            {/* Arrow pointing down */}
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-800 border-r border-b border-inherit rotate-45" />
+          </div>
+        </div>
+      )}
+
       {/* Action badge above avatar */}
-      {actionLabel && agent.is_alive && (
+      {actionLabel && agent.is_alive && !showSpeech && (
         <div className="iso-label absolute -top-2 left-1/2 -translate-x-1/2 z-30">
           <div className={cn(
             'px-1.5 py-0.5 rounded text-[8px] font-bold whitespace-nowrap shadow-lg',
@@ -80,16 +111,16 @@ export function CityAgentAvatar({ agent, isPhaseActive }: CityAgentAvatarProps) 
         </div>
       )}
 
-      {/* Avatar circle - bigger for readability */}
+      {/* Avatar circle */}
       <div
         className={cn(
           'w-8 h-8 rounded-full flex items-center justify-center ring-2 shadow-lg',
           agent.is_alive ? MOOD_COLORS[mood] : 'bg-zinc-600',
           agent.is_alive ? MOOD_RING[mood] : 'ring-zinc-600/50',
           !agent.is_alive && 'opacity-40 grayscale',
-          isPhaseActive && agent.is_alive && 'animate-pulse-glow',
+          isPhaseActive && agent.is_alive && 'agent-active-pulse',
         )}
-        title={`${agent.name} (${agent.agent_type}) - ${MOOD_LABELS[mood]} - Balance: ${agent.balance}`}
+        title={`${agent.name} (${agent.agent_type}) - ${MOOD_LABELS[mood]} - Balance: ${agent.balance} ${CIV_TOKEN.symbol}`}
       >
         <Icon className="h-4 w-4 text-white drop-shadow" />
       </div>

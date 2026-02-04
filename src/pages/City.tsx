@@ -1,4 +1,4 @@
-import { ReactNode, useMemo } from 'react';
+import { ReactNode, useMemo, useState, useEffect, useCallback } from 'react';
 import { useSimulationContext } from '@/contexts/SimulationContext';
 import { IsometricGrid } from '@/components/city/IsometricGrid';
 import { IsometricViewport } from '@/components/city/IsometricViewport';
@@ -10,8 +10,10 @@ import { CityLegend } from '@/components/city/CityLegend';
 import { CityEventToasts } from '@/components/city/CityEventToasts';
 import { PhaseOverlay } from '@/components/city/PhaseOverlay';
 import { DayTransitionBanner } from '@/components/city/DayTransitionBanner';
+import { ConstructionParticles } from '@/components/city/ConstructionParticles';
 import { StatsStrip } from '@/components/simulation/StatsStrip';
 import { useCityAgentPlacement } from '@/hooks/useCityAgentPlacement';
+import { useCityBuildings } from '@/hooks/useCityBuildings';
 import { GRID_CELLS } from '@/components/city/cityGridData';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -22,7 +24,7 @@ export default function City() {
     worldState,
     agents,
     events,
-    buildings,
+    buildings: realBuildings,
     isProcessing,
     currentPhase,
     initializeWorld,
@@ -31,7 +33,40 @@ export default function City() {
     resetWorld,
   } = useSimulationContext();
 
-  const { agentsByCell, buildingsByCell } = useCityAgentPlacement(agents, buildings);
+  // Simulated buildings (used when database buildings haven't been deployed)
+  const { buildings: cityBuildings, newBuildingIds } = useCityBuildings(
+    agents,
+    realBuildings,
+    worldState?.day ?? 0
+  );
+
+  const { agentsByCell, buildingsByCell } = useCityAgentPlacement(agents, cityBuildings);
+
+  // Speech bubble cycling: rotate through agents with reasons
+  const [speechAgentId, setSpeechAgentId] = useState<string | null>(null);
+
+  const agentsWithReasons = useMemo(
+    () => agents.filter((a) => a.is_alive && a.last_action_reason),
+    [agents]
+  );
+
+  const cycleSpeech = useCallback(() => {
+    if (agentsWithReasons.length === 0) {
+      setSpeechAgentId(null);
+      return;
+    }
+    setSpeechAgentId((prev) => {
+      const currentIdx = agentsWithReasons.findIndex((a) => a.id === prev);
+      const nextIdx = (currentIdx + 1) % agentsWithReasons.length;
+      return agentsWithReasons[nextIdx].id;
+    });
+  }, [agentsWithReasons]);
+
+  useEffect(() => {
+    cycleSpeech(); // Start immediately
+    const interval = setInterval(cycleSpeech, 4000);
+    return () => clearInterval(interval);
+  }, [cycleSpeech]);
 
   // Determine which phase is active for highlighting
   const activePhaseType = useMemo(() => {
@@ -64,8 +99,12 @@ export default function City() {
 
     // Add buildings
     for (const [key, placement] of Object.entries(buildingsByCell)) {
+      const isNew = newBuildingIds.has(placement.building.id);
       content[key] = (
-        <IsometricBuilding building={placement.building} />
+        <div key={`bld-${key}`}>
+          <IsometricBuilding building={placement.building} isNew={isNew} />
+          <ConstructionParticles active={isNew} />
+        </div>
       );
     }
 
@@ -77,6 +116,7 @@ export default function City() {
           key={p.agent.id}
           agent={p.agent}
           isPhaseActive={activePhaseType === p.agent.agent_type}
+          showSpeech={speechAgentId === p.agent.id}
         />
       ));
 
@@ -89,7 +129,7 @@ export default function City() {
     }
 
     return content;
-  }, [agentsByCell, buildingsByCell, activePhaseType]);
+  }, [agentsByCell, buildingsByCell, activePhaseType, speechAgentId, newBuildingIds]);
 
   // Check for chaos phase
   const isChaosActive = activePhaseType === 'chaos';
@@ -155,7 +195,7 @@ export default function City() {
         {/* Side panel */}
         <CitySidePanel
           agents={agents}
-          buildings={buildings}
+          buildings={cityBuildings}
           events={events}
           currentDay={worldState.day}
         />

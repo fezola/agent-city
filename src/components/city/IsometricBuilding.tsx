@@ -1,5 +1,6 @@
 import { Building, BuildingType, BUILDING_LABELS } from '@/types/simulation';
 import { Home, Factory, Store, Building2, Zap, Plus } from 'lucide-react';
+import { TILE_SIZE } from './cityGridData';
 import { cn } from '@/lib/utils';
 
 interface IsometricBuildingProps {
@@ -11,9 +12,9 @@ interface IsometricBuildingProps {
 }
 
 const LEVEL_CONFIG: Record<number, { height: number; width: number }> = {
-  1: { height: 24, width: 40 },
-  2: { height: 40, width: 44 },
-  3: { height: 56, width: 48 },
+  1: { height: 28, width: 44 },
+  2: { height: 44, width: 48 },
+  3: { height: 60, width: 52 },
 };
 
 const BUILDING_COLORS: Record<BuildingType, { top: string; front: string; side: string }> = {
@@ -50,8 +51,8 @@ export function IsometricBuilding({ building, showEmptyPlot, isNew }: IsometricB
   const Icon = BUILDING_ICONS[building.building_type];
   const inactive = !building.is_active;
 
-  const offsetX = (64 - config.width) / 2;
-  const offsetY = 64 - config.width; // bottom-align in tile
+  const offsetX = (TILE_SIZE - config.width) / 2;
+  const offsetY = TILE_SIZE - config.width;
 
   return (
     <div
@@ -100,8 +101,8 @@ export function IsometricBuilding({ building, showEmptyPlot, isNew }: IsometricB
             <div
               key={i}
               className={cn(
-                'w-1.5 h-1.5 rounded-full',
-                i < building.level ? 'bg-white/60' : 'bg-white/20',
+                'w-2 h-2 rounded-full',
+                i < building.level ? 'bg-white/70' : 'bg-white/20',
               )}
             />
           ))}
@@ -118,6 +119,13 @@ export function IsometricBuilding({ building, showEmptyPlot, isNew }: IsometricB
           transform: 'rotateY(90deg)',
         }}
       />
+
+      {/* Building label below */}
+      <div className="iso-label absolute -bottom-5 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
+        <span className="text-[8px] font-bold text-white drop-shadow-md uppercase tracking-wide">
+          {BUILDING_LABELS[building.building_type]} L{building.level}
+        </span>
+      </div>
     </div>
   );
 }
