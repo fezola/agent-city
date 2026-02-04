@@ -115,6 +115,105 @@ export interface MerchantDecision {
   confidence: number;
 }
 
+// ==================== META-AGENT TYPES ====================
+
+// Chaos Event Types
+export type ChaosEventType =
+  | 'emergency_tax_hike'
+  | 'inflation_spike'
+  | 'treasury_leak'
+  | 'merchant_supply_shock'
+  | 'worker_strike'
+  | 'external_demand_boom'
+  | 'no_event';
+
+export interface ChaosEvent {
+  id: string;
+  world_id: string;
+  day: number;
+  event_type: ChaosEventType;
+  severity: number;
+  reason: string;
+  effects_applied?: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface ChaosDecision {
+  event: ChaosEventType;
+  severity: number;
+  reason: string;
+}
+
+// Collapse Evaluation Types
+export type CollapseStatus = 'stable' | 'unstable' | 'collapsed';
+
+export interface CollapseEvaluation {
+  id: string;
+  world_id: string;
+  day: number;
+  status: CollapseStatus;
+  confidence: number;
+  reason: string;
+  created_at: string;
+}
+
+export interface CollapseDecision {
+  status: CollapseStatus;
+  confidence: number;
+  reason: string;
+}
+
+// Narrative Types
+export interface DayNarrative {
+  id: string;
+  world_id: string;
+  day: number;
+  summary: string;
+  created_at: string;
+}
+
+export interface NarrativeDecision {
+  summary: string;
+}
+
+// Emergence Types
+export interface EmergenceLog {
+  id: string;
+  world_id: string;
+  day: number;
+  detected: boolean;
+  description?: string;
+  created_at: string;
+}
+
+export interface EmergenceDecision {
+  emergent_behavior_detected: boolean;
+  description: string;
+}
+
+// System Memory
+export type SystemMemoryType = 'chaos' | 'collapse' | 'narrative' | 'emergence';
+
+export interface SystemMemory {
+  id: string;
+  world_id: string;
+  memory_type: SystemMemoryType;
+  day: number;
+  content: Record<string, unknown>;
+  created_at: string;
+}
+
+// Day Events for narrative/emergence
+export interface DayEvents {
+  governor_decisions: string[];
+  worker_decisions: string[];
+  merchant_decisions: string[];
+  building_decisions: string[];
+  chaos_event?: string;
+  expulsions: string[];
+  wager_results: string[];
+}
+
 // Simulation Config
 export interface SimulationConfig {
   dayDurationMs: number;
@@ -130,4 +229,56 @@ export const DEFAULT_CONFIG: SimulationConfig = {
   initialMerchants: 2,
   startingBalance: 500,
   startingTreasury: 10000,
+};
+
+// ==================== BUILDING TYPES ====================
+
+export type BuildingType = 'housing' | 'factory' | 'market' | 'gate' | 'power_hub';
+
+export interface Building {
+  id: string;
+  world_id: string;
+  owner_id: string;
+  building_type: BuildingType;
+  level: number;
+  is_active: boolean;
+  built_day: number;
+  last_maintained_day: number;
+  created_at: string;
+}
+
+export interface BuildingDecision {
+  action: 'build' | 'upgrade' | 'skip';
+  building_type?: BuildingType;
+  reason: string;
+}
+
+export const BUILDING_COSTS: Record<BuildingType, number> = {
+  housing: 200,
+  factory: 350,
+  market: 300,
+  gate: 500,
+  power_hub: 800,
+};
+
+export const BUILDING_MAINTENANCE: Record<BuildingType, number> = {
+  housing: 10,
+  factory: 20,
+  market: 15,
+  gate: 25,
+  power_hub: 40,
+};
+
+export const BUILDING_LABELS: Record<BuildingType, string> = {
+  housing: 'Housing',
+  factory: 'Factory',
+  market: 'Market',
+  gate: 'City Gate',
+  power_hub: 'Power Hub',
+};
+
+export const AGENT_ALLOWED_BUILDINGS: Record<AgentType, BuildingType[]> = {
+  worker: ['housing', 'factory'],
+  merchant: ['market'],
+  governor: ['gate', 'power_hub'],
 };

@@ -162,6 +162,57 @@ export type Database = {
           },
         ]
       }
+      buildings: {
+        Row: {
+          id: string
+          world_id: string
+          owner_id: string
+          building_type: string
+          level: number
+          is_active: boolean
+          built_day: number
+          last_maintained_day: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          world_id: string
+          owner_id: string
+          building_type: string
+          level?: number
+          is_active?: boolean
+          built_day: number
+          last_maintained_day: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          world_id?: string
+          owner_id?: string
+          building_type?: string
+          level?: number
+          is_active?: boolean
+          built_day?: number
+          last_maintained_day?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "buildings_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: false
+            referencedRelation: "world_state"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "buildings_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wagers: {
         Row: {
           agent_id: string

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(ls -la \"c:\\\\Users\\\\Hp\\\\agent-city\\\\supabase\\\\migrations\"\" 2>&1 || echo \"Directory not found \")"
+    ]
+  }
+}

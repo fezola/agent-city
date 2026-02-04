@@ -28,23 +28,31 @@ const eventColors: Record<string, string> = {
 };
 
 export function EventFeed({ events }: EventFeedProps) {
+  // Show most recent events first, limit to 50
+  const displayEvents = events.slice(0, 50);
+
   return (
-    <Card className="h-full bg-background/50">
+    <Card className="bg-background/50">
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Activity className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Activity className="h-4 w-4" />
           Live Events
+          {events.length > 0 && (
+            <span className="text-xs text-muted-foreground font-normal ml-auto">
+              {events.length} total
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className="h-[400px] px-4 pb-4">
+        <ScrollArea className="h-[280px] px-4 pb-4">
           <div className="space-y-2">
-            {events.length === 0 ? (
+            {displayEvents.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
                 No events yet. Start the simulation!
               </div>
             ) : (
-              events.map((event) => (
+              displayEvents.map((event) => (
                 <div
                   key={event.id}
                   className={`p-3 rounded-lg bg-muted/30 border-l-4 ${eventColors[event.event_type] || 'border-l-gray-500'} animate-in slide-in-from-right duration-300`}
