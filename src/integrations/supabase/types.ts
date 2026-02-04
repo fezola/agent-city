@@ -164,39 +164,46 @@ export type Database = {
       }
       buildings: {
         Row: {
-          id: string
-          world_id: string
-          owner_id: string
           building_type: string
-          level: number
-          is_active: boolean
           built_day: number
-          last_maintained_day: number
           created_at: string
+          id: string
+          is_active: boolean
+          last_maintained_day: number
+          level: number
+          owner_id: string
+          world_id: string
         }
         Insert: {
-          id?: string
-          world_id: string
-          owner_id: string
           building_type: string
-          level?: number
-          is_active?: boolean
           built_day: number
-          last_maintained_day: number
           created_at?: string
+          id?: string
+          is_active?: boolean
+          last_maintained_day: number
+          level?: number
+          owner_id: string
+          world_id: string
         }
         Update: {
-          id?: string
-          world_id?: string
-          owner_id?: string
           building_type?: string
-          level?: number
-          is_active?: boolean
           built_day?: number
-          last_maintained_day?: number
           created_at?: string
+          id?: string
+          is_active?: boolean
+          last_maintained_day?: number
+          level?: number
+          owner_id?: string
+          world_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "buildings_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "buildings_world_id_fkey"
             columns: ["world_id"]
@@ -204,11 +211,150 @@ export type Database = {
             referencedRelation: "world_state"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      chaos_events: {
+        Row: {
+          created_at: string
+          day: number
+          effects_applied: Json | null
+          event_type: string
+          id: string
+          reason: string
+          severity: number
+          world_id: string
+        }
+        Insert: {
+          created_at?: string
+          day: number
+          effects_applied?: Json | null
+          event_type: string
+          id?: string
+          reason: string
+          severity?: number
+          world_id: string
+        }
+        Update: {
+          created_at?: string
+          day?: number
+          effects_applied?: Json | null
+          event_type?: string
+          id?: string
+          reason?: string
+          severity?: number
+          world_id?: string
+        }
+        Relationships: [
           {
-            foreignKeyName: "buildings_owner_id_fkey"
-            columns: ["owner_id"]
+            foreignKeyName: "chaos_events_world_id_fkey"
+            columns: ["world_id"]
             isOneToOne: false
-            referencedRelation: "agents"
+            referencedRelation: "world_state"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collapse_evaluations: {
+        Row: {
+          confidence: number
+          created_at: string
+          day: number
+          id: string
+          reason: string
+          status: string
+          world_id: string
+        }
+        Insert: {
+          confidence?: number
+          created_at?: string
+          day: number
+          id?: string
+          reason: string
+          status?: string
+          world_id: string
+        }
+        Update: {
+          confidence?: number
+          created_at?: string
+          day?: number
+          id?: string
+          reason?: string
+          status?: string
+          world_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collapse_evaluations_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: false
+            referencedRelation: "world_state"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      day_narratives: {
+        Row: {
+          created_at: string
+          day: number
+          id: string
+          summary: string
+          world_id: string
+        }
+        Insert: {
+          created_at?: string
+          day: number
+          id?: string
+          summary: string
+          world_id: string
+        }
+        Update: {
+          created_at?: string
+          day?: number
+          id?: string
+          summary?: string
+          world_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "day_narratives_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: false
+            referencedRelation: "world_state"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emergence_logs: {
+        Row: {
+          created_at: string
+          day: number
+          description: string | null
+          detected: boolean
+          id: string
+          world_id: string
+        }
+        Insert: {
+          created_at?: string
+          day: number
+          description?: string | null
+          detected?: boolean
+          id?: string
+          world_id: string
+        }
+        Update: {
+          created_at?: string
+          day?: number
+          description?: string | null
+          detected?: boolean
+          id?: string
+          world_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergence_logs_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: false
+            referencedRelation: "world_state"
             referencedColumns: ["id"]
           },
         ]

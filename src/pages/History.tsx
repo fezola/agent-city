@@ -271,9 +271,9 @@ export default function History() {
                             </Link>
                           )}
                         </div>
-                        {event.details?.reason && (
+                        {(event.details as Record<string, unknown>)?.reason && (
                           <p className="text-xs text-muted-foreground mt-1">
-                            Reason: {event.details.reason}
+                            Reason: {String((event.details as Record<string, unknown>).reason)}
                           </p>
                         )}
                       </div>
