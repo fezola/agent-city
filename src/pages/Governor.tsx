@@ -215,9 +215,9 @@ export default function Governor() {
                     </Badge>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm">{event.description}</p>
-                      {event.details?.reason && (
+                      {(event.details as Record<string, unknown>)?.reason && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          Reasoning: {event.details.reason}
+                          Reasoning: {String((event.details as Record<string, unknown>).reason)}
                         </p>
                       )}
                     </div>
