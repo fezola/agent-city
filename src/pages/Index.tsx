@@ -5,6 +5,7 @@ import { EventFeed } from '@/components/simulation/EventFeed';
 import { EconomyCharts } from '@/components/simulation/EconomyCharts';
 import { WorldMap } from '@/components/simulation/WorldMap';
 import { WagersPanel } from '@/components/simulation/WagersPanel';
+import { BuildingsPanel } from '@/components/simulation/BuildingsPanel';
 import { Button } from '@/components/ui/button';
 import { Loader2, Sparkles } from 'lucide-react';
 
@@ -16,6 +17,7 @@ const Index = () => {
     memories,
     wagers,
     balanceHistory,
+    buildings,
     isProcessing,
     currentPhase,
     initializeWorld,
@@ -159,7 +161,12 @@ const Index = () => {
 
           {/* Right Column - Info panels */}
           <div className="space-y-6">
-            <WorldMap agents={agents} worldState={worldState} />
+            <WorldMap agents={agents} worldState={worldState} buildings={buildings} />
+            <BuildingsPanel 
+              buildings={buildings} 
+              agents={agents} 
+              currentDay={worldState.day} 
+            />
             <EconomyCharts balanceHistory={balanceHistory} agents={agents} />
             <WagersPanel 
               wagers={wagers} 
