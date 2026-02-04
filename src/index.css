@@ -103,3 +103,177 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* ==================== Isometric City View ==================== */
+
+.isometric-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 72px);
+  grid-template-rows: repeat(8, 72px);
+  transform: rotateX(60deg) rotateZ(-45deg);
+  transform-style: preserve-3d;
+}
+
+.iso-tile {
+  width: 72px;
+  height: 72px;
+  border: 1px solid;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: background-color 0.3s ease;
+}
+
+.iso-tile:hover {
+  filter: brightness(1.2);
+}
+
+/* Counter-transform for readable labels inside isometric grid */
+.iso-label {
+  transform: rotateZ(45deg) rotateX(-60deg);
+  transform-origin: center center;
+}
+
+/* 3D building cube faces */
+.building-top {
+  position: absolute;
+  transform-style: preserve-3d;
+}
+
+.building-front {
+  position: absolute;
+  transform-origin: bottom center;
+  transform: rotateX(-90deg);
+}
+
+.building-side {
+  position: absolute;
+  transform-origin: center right;
+  transform: rotateY(90deg);
+}
+
+/* Isometric viewport */
+.iso-viewport {
+  overflow: hidden;
+  cursor: grab;
+  perspective: 1200px;
+}
+
+.iso-viewport:active {
+  cursor: grabbing;
+}
+
+.iso-viewport-inner {
+  transform-style: preserve-3d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+/* Water shimmer animation */
+@keyframes water-shimmer {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.6; }
+}
+
+.water-cell {
+  animation: water-shimmer 3s ease-in-out infinite;
+}
+
+/* Building construction scale-in */
+@keyframes building-appear {
+  0% { transform: translateZ(0) scale(0); opacity: 0; }
+  60% { transform: translateZ(var(--build-height)) scale(1.1); opacity: 1; }
+  100% { transform: translateZ(var(--build-height)) scale(1); opacity: 1; }
+}
+
+.building-new {
+  animation: building-appear 0.6s ease-out forwards;
+}
+
+/* Chaos shake effect */
+@keyframes chaos-shake {
+  0%, 100% { transform: rotateX(60deg) rotateZ(-45deg) translate(0, 0); }
+  10% { transform: rotateX(60deg) rotateZ(-45deg) translate(-2px, 1px); }
+  20% { transform: rotateX(60deg) rotateZ(-45deg) translate(2px, -1px); }
+  30% { transform: rotateX(60deg) rotateZ(-45deg) translate(-1px, 2px); }
+  40% { transform: rotateX(60deg) rotateZ(-45deg) translate(1px, -2px); }
+  50% { transform: rotateX(60deg) rotateZ(-45deg) translate(-2px, 0); }
+  60% { transform: rotateX(60deg) rotateZ(-45deg) translate(2px, 1px); }
+  70% { transform: rotateX(60deg) rotateZ(-45deg) translate(-1px, -1px); }
+  80% { transform: rotateX(60deg) rotateZ(-45deg) translate(1px, 2px); }
+  90% { transform: rotateX(60deg) rotateZ(-45deg) translate(0, -2px); }
+}
+
+.chaos-active .isometric-grid {
+  animation: chaos-shake 0.5s ease-in-out infinite;
+}
+
+/* Day transition banner */
+@keyframes day-banner {
+  0% { opacity: 0; transform: translateY(10px) scale(0.95); }
+  15% { opacity: 1; transform: translateY(0) scale(1); }
+  85% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-10px) scale(0.95); }
+}
+
+.day-banner {
+  animation: day-banner 2s ease-in-out forwards;
+}
+
+/* Golden glow for governor phase */
+@keyframes gov-glow {
+  0%, 100% { box-shadow: inset 0 0 10px rgba(251, 191, 36, 0); }
+  50% { box-shadow: inset 0 0 10px rgba(251, 191, 36, 0.3); }
+}
+
+.gov-phase-glow {
+  animation: gov-glow 1.5s ease-in-out infinite;
+}
+
+/* Particle burst for construction */
+@keyframes particle-burst {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--px), var(--py)) scale(0); opacity: 0; }
+}
+
+.construction-particle {
+  animation: particle-burst 0.8s ease-out forwards;
+}
+
+/* Red pulse for chaos overlay */
+@keyframes chaos-pulse {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 0.15; }
+}
+
+.chaos-overlay {
+  animation: chaos-pulse 1s ease-in-out infinite;
+}
+
+/* Collapse desaturation */
+.collapsed-filter {
+  filter: saturate(0.3) brightness(0.7);
+}
+
+/* Toast slide in */
+@keyframes toast-slide {
+  0% { transform: translateX(-100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+.event-toast {
+  animation: toast-slide 0.3s ease-out forwards;
+}
+
+/* Hammer bounce for building phase */
+@keyframes hammer-bounce {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-20deg); }
+  75% { transform: rotate(20deg); }
+}
+
+.hammer-active {
+  animation: hammer-bounce 0.5s ease-in-out infinite;
+}

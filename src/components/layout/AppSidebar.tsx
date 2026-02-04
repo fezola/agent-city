@@ -8,6 +8,7 @@ import {
   Dices,
   ScrollText,
   BookOpen,
+  Map,
   Settings,
   Pause,
   SkipForward,
@@ -41,6 +42,7 @@ const navigationItems = [
   { path: '/merchants', label: 'Merchants', icon: ShoppingCart },
   { path: '/wagers', label: 'Wagers', icon: Dices },
   { path: '/story', label: 'Story', icon: BookOpen },
+  { path: '/city', label: 'City', icon: Map },
   { path: '/history', label: 'History', icon: ScrollText },
   { path: '/settings', label: 'Settings', icon: Settings },
 ];

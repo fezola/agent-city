@@ -15,6 +15,7 @@ import Merchants from "./pages/Merchants";
 import Wagers from "./pages/Wagers";
 import History from "./pages/History";
 import Story from "./pages/Story";
+import City from "./pages/City";
 import AgentDetail from "./pages/AgentDetail";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="/wagers" element={<Wagers />} />
               <Route path="/history" element={<History />} />
               <Route path="/story" element={<Story />} />
+              <Route path="/city" element={<City />} />
               <Route path="/agent/:id" element={<AgentDetail />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
