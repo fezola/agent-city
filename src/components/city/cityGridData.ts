@@ -23,7 +23,7 @@ const GRID_TEMPLATE: string[][] = [
 
 export const GRID_ROWS = 8;
 export const GRID_COLS = 10;
-export const TILE_SIZE = 72; // px - larger for readability
+export const TILE_SIZE = 80; // px - larger for readability and better building display
 
 const CHAR_TO_TYPE: Record<string, CellType> = {
   '.': 'grass',
@@ -43,7 +43,8 @@ export const GRID_CELLS: GridCell[] = GRID_TEMPLATE.flatMap((row, r) =>
   }))
 );
 
-// Cell type -> CSS background color class (solid, high contrast)
+// Cell type -> CSS colors (now handled in IsometricTile.tsx with SVG)
+// Keeping these for backwards compatibility
 export const CELL_COLORS: Record<CellType, string> = {
   grass: 'bg-emerald-900',
   road: 'bg-zinc-700',
@@ -54,7 +55,6 @@ export const CELL_COLORS: Record<CellType, string> = {
   water: 'bg-cyan-900',
 };
 
-// Cell type -> border color (solid, visible)
 export const CELL_BORDERS: Record<CellType, string> = {
   grass: 'border-emerald-700',
   road: 'border-zinc-500',

@@ -1,5 +1,5 @@
 import { ReactNode, useMemo } from 'react';
-import { GRID_CELLS, GRID_COLS, GRID_ROWS, TILE_SIZE, ZONE_LABELS } from './cityGridData';
+import { GRID_CELLS, GRID_COLS, GRID_ROWS, TILE_SIZE } from './cityGridData';
 import { IsometricTile } from './IsometricTile';
 import { cn } from '@/lib/utils';
 
@@ -18,15 +18,6 @@ export function IsometricGrid({
 }: IsometricGridProps) {
   const cells = useMemo(() => GRID_CELLS, []);
 
-  // Build zone label lookup
-  const zoneLabelMap = useMemo(() => {
-    const map: Record<string, { label: string; color: string }> = {};
-    for (const zl of ZONE_LABELS) {
-      map[`${zl.row}-${zl.col}`] = { label: zl.label, color: zl.color };
-    }
-    return map;
-  }, []);
-
   return (
     <div
       className={cn(
@@ -41,7 +32,6 @@ export function IsometricGrid({
     >
       {cells.map((cell) => {
         const key = `${cell.row}-${cell.col}`;
-        const zoneLabel = zoneLabelMap[key];
 
         return (
           <IsometricTile
@@ -51,19 +41,6 @@ export function IsometricGrid({
             col={cell.col}
             highlight={tileHighlights?.[key]}
           >
-            {/* Zone label */}
-            {zoneLabel && !tileContent?.[key] && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="iso-label">
-                  <span className={cn(
-                    'text-[8px] font-bold uppercase tracking-widest whitespace-nowrap opacity-60',
-                    zoneLabel.color,
-                  )}>
-                    {zoneLabel.label}
-                  </span>
-                </div>
-              </div>
-            )}
             {tileContent?.[key]}
           </IsometricTile>
         );

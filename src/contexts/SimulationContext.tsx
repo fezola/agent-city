@@ -1,6 +1,6 @@
 import { createContext, useContext, ReactNode, useMemo } from 'react';
 import { useSimulation } from '@/hooks/useSimulation';
-import { Agent, AgentType, WorldEvent, AgentMemory, Building } from '@/types/simulation';
+import { Agent, AgentType, WorldEvent, AgentMemory, Building, ChaosEvent, DayNarrative, EmergenceLog, CollapseEvaluation } from '@/types/simulation';
 
 // Get the return type of useSimulation
 type SimulationHookReturn = ReturnType<typeof useSimulation>;

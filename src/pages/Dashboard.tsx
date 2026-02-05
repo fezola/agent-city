@@ -3,6 +3,7 @@ import { useSimulationContext } from '@/contexts/SimulationContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { WorldMap } from '@/components/simulation/WorldMap';
+import { BuildingsPanel } from '@/components/simulation/BuildingsPanel';
 import { NarrativePanel } from '@/components/simulation/NarrativePanel';
 import { ChaosPanel } from '@/components/simulation/ChaosPanel';
 import { CollapseIndicator } from '@/components/simulation/CollapseIndicator';
@@ -36,6 +37,7 @@ export default function Dashboard() {
     chaosEvents,
     narratives,
     collapseEvaluations,
+    buildings,
   } = useSimulationContext();
 
   // No world exists yet - show welcome screen
@@ -310,7 +312,16 @@ export default function Dashboard() {
         {/* Right Column - Map & Chaos */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">World Map</h2>
-          <WorldMap agents={agents} worldState={worldState} />
+          <WorldMap agents={agents} worldState={worldState} buildings={buildings} />
+
+          {/* Buildings */}
+          {buildings.length > 0 && (
+            <BuildingsPanel 
+              buildings={buildings} 
+              agents={agents} 
+              currentDay={worldState.day} 
+            />
+          )}
 
           {/* Chaos Events */}
           {chaosEvents.length > 0 && (
