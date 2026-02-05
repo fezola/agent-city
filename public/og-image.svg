@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0f23"/>
+      <stop offset="100%" style="stop-color:#1a1a2e"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f59e0b"/>
+      <stop offset="100%" style="stop-color:#d97706"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Grid lines -->
+  <g stroke="#ffffff" stroke-opacity="0.05" stroke-width="1">
+    <line x1="0" y1="100" x2="1200" y2="100"/>
+    <line x1="0" y1="200" x2="1200" y2="200"/>
+    <line x1="0" y1="300" x2="1200" y2="300"/>
+    <line x1="0" y1="400" x2="1200" y2="400"/>
+    <line x1="0" y1="500" x2="1200" y2="500"/>
+    <line x1="200" y1="0" x2="200" y2="630"/>
+    <line x1="400" y1="0" x2="400" y2="630"/>
+    <line x1="600" y1="0" x2="600" y2="630"/>
+    <line x1="800" y1="0" x2="800" y2="630"/>
+    <line x1="1000" y1="0" x2="1000" y2="630"/>
+  </g>
+
+  <!-- City buildings -->
+  <rect x="150" y="350" width="80" height="180" fill="#3b82f6" rx="4"/>
+  <rect x="250" y="300" width="80" height="230" fill="#8b5cf6" rx="4"/>
+  <rect x="350" y="380" width="80" height="150" fill="#10b981" rx="4"/>
+  <rect x="770" y="320" width="80" height="210" fill="#3b82f6" rx="4"/>
+  <rect x="870" y="360" width="80" height="170" fill="#8b5cf6" rx="4"/>
+  <rect x="970" y="400" width="80" height="130" fill="#10b981" rx="4"/>
+
+  <!-- Title -->
+  <text x="600" y="220" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="bold" fill="#ffffff">Agent City</text>
+
+  <!-- Subtitle -->
+  <text x="600" y="280" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#a1a1aa">AI-Powered Economy Simulation</text>
+
+  <!-- CIV Token badge -->
+  <rect x="500" y="440" width="200" height="50" rx="25" fill="url(#gold)"/>
+  <text x="600" y="473" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="bold" fill="#1a1a2e">Powered by CIV</text>
+
+  <!-- Monad badge -->
+  <text x="600" y="540" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="#6b7280">on Monad Blockchain</text>
+</svg>
