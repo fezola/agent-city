@@ -130,8 +130,11 @@ const ERC20_ABI = [
  * Requires TREASURY_PRIVATE_KEY env var.
  */
 export function getTreasuryWallet(): ethers.Wallet {
-  const privateKey = Deno.env.get("TREASURY_PRIVATE_KEY");
-  if (!privateKey) throw new Error("TREASURY_PRIVATE_KEY not set");
+  const raw = Deno.env.get("TREASURY_PRIVATE_KEY");
+  if (!raw) throw new Error("TREASURY_PRIVATE_KEY not set");
+  // Trim whitespace and ensure 0x prefix
+  let privateKey = raw.trim();
+  if (!privateKey.startsWith("0x")) privateKey = "0x" + privateKey;
   const cfg = getCivConfig();
   const provider = new ethers.JsonRpcProvider(cfg.rpcUrl);
   return new ethers.Wallet(privateKey, provider);
