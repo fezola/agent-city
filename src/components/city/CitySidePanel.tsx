@@ -1,7 +1,8 @@
-import { Agent, WorldEvent, Building, BUILDING_LABELS, Mood, AgentType, CIV_TOKEN } from '@/types/simulation';
+import { Agent, WorldEvent, Building, BUILDING_LABELS, Mood, AgentType, CIV_TOKEN, OnchainTransaction } from '@/types/simulation';
 import { AGENT_INFO } from './cityGridData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { OnchainActivity } from '@/components/simulation/OnchainActivity';
 import { Crown, Hammer, ShoppingCart, Home, Factory, Store, Building2, Zap, Skull, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -9,6 +10,7 @@ interface CitySidePanelProps {
   agents: Agent[];
   buildings: Building[];
   events: WorldEvent[];
+  onchainTransactions: OnchainTransaction[];
   currentDay: number;
 }
 
@@ -65,7 +67,7 @@ const ACTION_LABELS: Record<string, string> = {
   stabilize: 'Stabilizing',
 };
 
-export function CitySidePanel({ agents, buildings, events, currentDay }: CitySidePanelProps) {
+export function CitySidePanel({ agents, buildings, events, onchainTransactions, currentDay }: CitySidePanelProps) {
   const recentEvents = events
     .filter((e) => e.day >= currentDay - 2)
     .sort((a, b) => b.day - a.day || new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -87,6 +89,9 @@ export function CitySidePanel({ agents, buildings, events, currentDay }: CitySid
           </TabsTrigger>
           <TabsTrigger value="events" className="text-xs h-7 px-2 data-[state=active]:bg-zinc-700 data-[state=active]:text-white">
             Log
+          </TabsTrigger>
+          <TabsTrigger value="chain" className="text-xs h-7 px-2 data-[state=active]:bg-zinc-700 data-[state=active]:text-white">
+            Chain
           </TabsTrigger>
         </TabsList>
 
@@ -359,6 +364,11 @@ export function CitySidePanel({ agents, buildings, events, currentDay }: CitySid
               )}
             </div>
           </ScrollArea>
+        </TabsContent>
+
+        {/* CHAIN TAB */}
+        <TabsContent value="chain" className="flex-1 m-0 overflow-hidden">
+          <OnchainActivity transactions={onchainTransactions} />
         </TabsContent>
       </Tabs>
     </div>

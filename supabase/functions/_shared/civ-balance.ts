@@ -1,6 +1,7 @@
-// CIV Token (Civic Credit) — onchain balance reader
-// Uses raw JSON-RPC eth_call to read ERC-20 balanceOf
-// No web3 library dependency — just fetch + ABI encoding
+// CIV Token (Civic Credit) — onchain balance reader + transaction sender
+// Uses ethers.js for wallet signing and ERC-20 transfers on Monad
+
+import { ethers } from "npm:ethers@6";
 
 export const CIV_TOKEN_NAME = "Civic Credit";
 export const CIV_TOKEN_SYMBOL = "CIV";
@@ -18,7 +19,7 @@ export interface CivTokenConfig {
 
 export function getCivConfig(): CivTokenConfig {
   return {
-    rpcUrl: Deno.env.get("MONAD_RPC_URL") || "https://testnet-rpc.monad.xyz",
+    rpcUrl: Deno.env.get("MONAD_RPC_URL") || "https://rpc.monad.xyz",
     tokenContract: Deno.env.get("CIV_TOKEN_CONTRACT") || CIV_CONTRACT_ADDRESS,
     treasuryWallet: Deno.env.get("TREASURY_WALLET_ADDRESS") || "",
   };
@@ -110,5 +111,83 @@ Pricing decisions directly affect your real token balance. Losses are permanent.
 This economy uses ${CIV_TOKEN_NAME} (${CIV_TOKEN_SYMBOL}), a real ERC-20 token on the ${CIV_CHAIN} blockchain.
 Contract: ${CIV_CONTRACT_ADDRESS}
 All balances are backed by real tokens. Token losses are permanent.`;
+  }
+}
+
+// ==================== WALLET & TRANSACTION SIGNING ====================
+
+// 1 simulation CIV = 0.001 real CIV (1e15 wei)
+// This conserves token supply across many simulation days
+export const CIV_SIMULATION_SCALE = 1000n;
+
+const ERC20_ABI = [
+  "function transfer(address to, uint256 amount) returns (bool)",
+  "function balanceOf(address account) view returns (uint256)",
+];
+
+/**
+ * Create an ethers.js Wallet connected to Monad RPC.
+ * Requires TREASURY_PRIVATE_KEY env var.
+ */
+export function getTreasuryWallet(): ethers.Wallet {
+  const privateKey = Deno.env.get("TREASURY_PRIVATE_KEY");
+  if (!privateKey) throw new Error("TREASURY_PRIVATE_KEY not set");
+  const cfg = getCivConfig();
+  const provider = new ethers.JsonRpcProvider(cfg.rpcUrl);
+  return new ethers.Wallet(privateKey, provider);
+}
+
+/**
+ * Derive a deterministic Monad address for an agent.
+ * Uses keccak256(treasury_address + ":" + agentName) → last 20 bytes.
+ * These addresses are passive recipients (no private key needed).
+ */
+export function deriveAgentAddress(agentName: string): string {
+  const treasuryAddress = Deno.env.get("TREASURY_WALLET_ADDRESS") || "";
+  const hash = ethers.keccak256(
+    ethers.toUtf8Bytes(`${treasuryAddress}:${agentName}`)
+  );
+  return ethers.getAddress("0x" + hash.slice(-40));
+}
+
+/**
+ * Convert simulation CIV amount to wei.
+ * 1 simulation CIV = 1e15 wei (0.001 real CIV).
+ */
+export function simCivToWei(simAmount: number): bigint {
+  if (simAmount <= 0) return 0n;
+  return BigInt(Math.floor(simAmount)) * (10n ** 18n / CIV_SIMULATION_SCALE);
+}
+
+/**
+ * Send CIV tokens from treasury wallet to a recipient address.
+ * Returns tx hash on success.
+ */
+export async function sendCivTransfer(
+  wallet: ethers.Wallet,
+  toAddress: string,
+  amountWei: bigint,
+  nonce?: number,
+): Promise<{ txHash: string; success: boolean; error?: string }> {
+  try {
+    const cfg = getCivConfig();
+    const contract = new ethers.Contract(cfg.tokenContract, ERC20_ABI, wallet);
+
+    const txOptions: Record<string, unknown> = {};
+    if (nonce !== undefined) txOptions.nonce = nonce;
+
+    const tx = await contract.transfer(toAddress, amountWei, txOptions);
+    const receipt = await tx.wait(1); // wait for 1 confirmation
+
+    return {
+      txHash: receipt.hash,
+      success: true,
+    };
+  } catch (err) {
+    return {
+      txHash: "",
+      success: false,
+      error: err instanceof Error ? err.message : "Transfer failed",
+    };
   }
 }

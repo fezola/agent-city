@@ -25,6 +25,7 @@ export default function City() {
     agents,
     events,
     buildings: realBuildings,
+    onchainTransactions,
     isProcessing,
     currentPhase,
     initializeWorld,
@@ -197,6 +198,7 @@ export default function City() {
           agents={agents}
           buildings={cityBuildings}
           events={events}
+          onchainTransactions={onchainTransactions}
           currentDay={worldState.day}
         />
       </div>

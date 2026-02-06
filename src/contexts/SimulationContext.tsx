@@ -1,6 +1,6 @@
 import { createContext, useContext, ReactNode, useMemo } from 'react';
 import { useSimulation } from '@/hooks/useSimulation';
-import { Agent, AgentType, WorldEvent, AgentMemory, Building, ChaosEvent, DayNarrative, EmergenceLog, CollapseEvaluation } from '@/types/simulation';
+import { Agent, AgentType, WorldEvent, AgentMemory, Building, OnchainTransaction } from '@/types/simulation';
 
 // Get the return type of useSimulation
 type SimulationHookReturn = ReturnType<typeof useSimulation>;
@@ -14,6 +14,7 @@ interface SimulationContextValue extends SimulationHookReturn {
   getEventsForAgent: (agentId: string) => WorldEvent[];
   getMemoriesForAgent: (agentId: string) => AgentMemory[];
   getBuildingsForAgent: (agentId: string) => Building[];
+  getOnchainTransactionsForAgent: (agentId: string) => OnchainTransaction[];
 }
 
 const SimulationContext = createContext<SimulationContextValue | null>(null);
@@ -58,6 +59,10 @@ export function SimulationProvider({ children }: SimulationProviderProps) {
 
     getBuildingsForAgent: (agentId: string) => {
       return simulation.buildings.filter(b => b.owner_id === agentId);
+    },
+
+    getOnchainTransactionsForAgent: (agentId: string) => {
+      return simulation.onchainTransactions.filter(t => t.agent_id === agentId);
     },
   }), [simulation]);
 

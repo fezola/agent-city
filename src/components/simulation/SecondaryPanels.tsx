@@ -1,6 +1,7 @@
-import { DayNarrative, ChaosEvent, EmergenceLog, CollapseEvaluation, Wager, Agent, Building, BUILDING_LABELS, BUILDING_MAINTENANCE } from '@/types/simulation';
+import { DayNarrative, ChaosEvent, EmergenceLog, CollapseEvaluation, Wager, Agent, Building, BUILDING_LABELS, BUILDING_MAINTENANCE, OnchainTransaction } from '@/types/simulation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { OnchainActivity } from './OnchainActivity';
 import { cn } from '@/lib/utils';
 
 interface SecondaryPanelsProps {
@@ -11,6 +12,7 @@ interface SecondaryPanelsProps {
   wagers: Wager[];
   agents: Agent[];
   buildings: Building[];
+  onchainTransactions: OnchainTransaction[];
   currentDay: number;
 }
 
@@ -330,11 +332,13 @@ export function SecondaryPanels({
   wagers,
   agents,
   buildings,
+  onchainTransactions,
   currentDay,
 }: SecondaryPanelsProps) {
   const activeChaos = chaosEvents.filter(e => e.event_type !== 'no_event');
   const detectedEmergence = emergenceLogs.filter(e => e.detected);
   const activeBuildings = buildings.filter(b => b.is_active);
+  const confirmedTxs = onchainTransactions.filter(t => t.status === 'confirmed');
 
   return (
     <div className="flex flex-col h-full">
@@ -377,6 +381,12 @@ export function SecondaryPanels({
             >
               Stability
             </TabsTrigger>
+            <TabsTrigger
+              value="onchain"
+              className="text-[10px] h-8 rounded-none border-b-2 border-transparent data-[state=active]:border-emerald-400 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-2"
+            >
+              Chain{confirmedTxs.length > 0 && ` (${confirmedTxs.length})`}
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -414,6 +424,12 @@ export function SecondaryPanels({
           <TabsContent value="stability" className="h-full m-0">
             <ScrollArea className="h-full">
               <StabilityTab evaluations={collapseEvaluations} />
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="onchain" className="h-full m-0">
+            <ScrollArea className="h-full">
+              <OnchainActivity transactions={onchainTransactions} />
             </ScrollArea>
           </TabsContent>
         </div>

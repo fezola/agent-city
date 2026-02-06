@@ -24,6 +24,7 @@ export default function Simulation() {
     emergenceLogs,
     collapseEvaluations,
     buildings,
+    onchainTransactions,
     initializeWorld,
     toggleSimulation,
     stepSimulation,
@@ -107,6 +108,7 @@ export default function Simulation() {
               wagers={wagers}
               agents={agents}
               buildings={buildings}
+              onchainTransactions={onchainTransactions}
               currentDay={worldState.day}
             />
           </div>

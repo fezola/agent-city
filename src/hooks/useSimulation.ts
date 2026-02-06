@@ -21,6 +21,7 @@ import {
   BUILDING_COSTS,
   BUILDING_MAINTENANCE,
   AGENT_ALLOWED_BUILDINGS,
+  OnchainTransaction,
 } from '@/types/simulation';
 import { toast } from 'sonner';
 
@@ -43,6 +44,12 @@ export function useSimulation() {
 
   // Building state
   const [buildings, setBuildings] = useState<Building[]>([]);
+
+  // Onchain transaction state
+  const [onchainTransactions, setOnchainTransactions] = useState<OnchainTransaction[]>([]);
+
+  // Track per-agent earnings during day processing for onchain settlement
+  const agentEarningsRef = useRef<Record<string, { earnings: number; buildingCost: number; wagerPayout: number }>>({});
 
   // Track day events for narrative/emergence
   const dayEventsRef = useRef<DayEvents>({
@@ -248,6 +255,23 @@ export function useSimulation() {
     }
 
     setBuildings((data || []) as Building[]);
+  }, []);
+
+  // Load onchain transactions
+  const loadOnchainTransactions = useCallback(async (worldId: string) => {
+    const { data, error } = await supabase
+      .from('onchain_transactions')
+      .select('*')
+      .eq('world_id', worldId)
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    if (error) {
+      console.error('Error loading onchain transactions:', error);
+      return;
+    }
+
+    setOnchainTransactions((data || []) as OnchainTransaction[]);
   }, []);
 
   // Initialize a new world
@@ -643,6 +667,7 @@ export function useSimulation() {
     setIsProcessing(true);
 
     // Reset day events tracker
+    agentEarningsRef.current = {};
     dayEventsRef.current = {
       governor_decisions: [],
       worker_decisions: [],
@@ -719,6 +744,34 @@ export function useSimulation() {
       // Phase 10: EMERGENCE EVALUATOR
       await processEmergence();
 
+      // Phase 11: ONCHAIN SETTLEMENT (non-blocking)
+      setCurrentPhase('⛓️ Settling onchain...');
+      try {
+        const settlements = agents
+          .filter(a => a.is_alive)
+          .map(a => ({
+            agentId: a.id,
+            agentName: a.name,
+            agentType: a.agent_type,
+            earnings: agentEarningsRef.current[a.id]?.earnings || 0,
+            buildingCost: agentEarningsRef.current[a.id]?.buildingCost || 0,
+            wagerPayout: agentEarningsRef.current[a.id]?.wagerPayout || 0,
+          }))
+          .filter(s => s.earnings > 0 || s.buildingCost > 0 || s.wagerPayout > 0);
+
+        if (settlements.length > 0) {
+          await supabase.functions.invoke('onchain-settle', {
+            body: {
+              worldId: worldState.id,
+              day: worldState.day,
+              settlements,
+            },
+          });
+        }
+      } catch (err) {
+        console.error('Onchain settlement failed (non-blocking):', err);
+      }
+
       // Reload all data
       await loadWorldState();
       await loadAgents(worldState.id);
@@ -730,6 +783,7 @@ export function useSimulation() {
       await loadEmergenceLogs(worldState.id);
       await loadCollapseEvaluations(worldState.id);
       await loadBuildings(worldState.id);
+      await loadOnchainTransactions(worldState.id);
 
     } catch (error) {
       console.error('Error processing day:', error);
@@ -738,7 +792,7 @@ export function useSimulation() {
       setIsProcessing(false);
       setCurrentPhase('');
     }
-  }, [worldState, agents, buildings, isProcessing, loadWorldState, loadAgents, loadEvents, loadBalanceHistory, loadWagers, loadChaosEvents, loadNarratives, loadEmergenceLogs, loadCollapseEvaluations, loadBuildings]);
+  }, [worldState, agents, buildings, isProcessing, loadWorldState, loadAgents, loadEvents, loadBalanceHistory, loadWagers, loadChaosEvents, loadNarratives, loadEmergenceLogs, loadCollapseEvaluations, loadBuildings, loadOnchainTransactions]);
 
   // Collect fees from all agents
   const collectFees = async (workers: Agent[], merchants: Agent[]) => {
@@ -942,6 +996,10 @@ export function useSimulation() {
             last_maintained_day: worldState.day,
           });
 
+          // Track building cost for onchain settlement
+          if (!agentEarningsRef.current[agent.id]) agentEarningsRef.current[agent.id] = { earnings: 0, buildingCost: 0, wagerPayout: 0 };
+          agentEarningsRef.current[agent.id].buildingCost += cost;
+
           const eventDesc = `🏗️ ${agent.name} built a ${buildingType} (cost: ${cost})`;
           await supabase.from('world_events').insert({
             world_id: worldState.id,
@@ -1141,6 +1199,9 @@ export function useSimulation() {
           const earnings = worldState.salary_rate * (1 - worldState.tax_rate) + factoryBonus;
           newBalance += earnings;
           eventDescription = `💼 ${worker.name} worked and earned ${earnings.toFixed(0)} tokens${factoryBonus > 0 ? ` (factory +${factoryBonus})` : ''}`;
+          // Track for onchain settlement
+          if (!agentEarningsRef.current[worker.id]) agentEarningsRef.current[worker.id] = { earnings: 0, buildingCost: 0, wagerPayout: 0 };
+          agentEarningsRef.current[worker.id].earnings += earnings;
           satisfactionChange = 2;
           newMood = newBalance > 300 ? 'happy' : 'neutral';
           break;
@@ -1276,6 +1337,12 @@ export function useSimulation() {
       }
 
       const newBalance = merchant.balance + profit;
+
+      // Track for onchain settlement
+      if (profit > 0) {
+        if (!agentEarningsRef.current[merchant.id]) agentEarningsRef.current[merchant.id] = { earnings: 0, buildingCost: 0, wagerPayout: 0 };
+        agentEarningsRef.current[merchant.id].earnings += profit;
+      }
 
       await supabase.from('agents').update({
         balance: newBalance,
@@ -1503,6 +1570,7 @@ export function useSimulation() {
           loadEmergenceLogs(world.id),
           loadCollapseEvaluations(world.id),
           loadBuildings(world.id),
+          loadOnchainTransactions(world.id),
         ]);
         const agentData = await supabase.from('agents').select('id').eq('world_id', world.id);
         if (agentData.data) {
@@ -1511,7 +1579,7 @@ export function useSimulation() {
       }
     };
     init();
-  }, [loadWorldState, loadAgents, loadEvents, loadBalanceHistory, loadWagers, loadMemories, loadChaosEvents, loadNarratives, loadEmergenceLogs, loadCollapseEvaluations, loadBuildings]);
+  }, [loadWorldState, loadAgents, loadEvents, loadBalanceHistory, loadWagers, loadMemories, loadChaosEvents, loadNarratives, loadEmergenceLogs, loadCollapseEvaluations, loadBuildings, loadOnchainTransactions]);
 
   return {
     worldState,
@@ -1529,6 +1597,8 @@ export function useSimulation() {
     collapseEvaluations,
     // Buildings
     buildings,
+    // Onchain
+    onchainTransactions,
     // Actions
     initializeWorld,
     toggleSimulation,

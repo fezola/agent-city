@@ -291,4 +291,34 @@ export const CIV_TOKEN = {
   contract: "0x1B4446578e27bfd27338222B291C8efFc89D7777",
   chain: "Monad",
   decimals: 18,
+  explorer: "https://explorer.monad.xyz",
 } as const;
+
+// ==================== ONCHAIN TRANSACTION TYPES ====================
+
+export type OnchainTxType =
+  | 'salary_payment'
+  | 'fee_collection'
+  | 'building_purchase'
+  | 'wager_payout'
+  | 'treasury_distribution'
+  | 'chaos_effect';
+
+export type OnchainTxStatus = 'pending' | 'confirmed' | 'failed';
+
+export interface OnchainTransaction {
+  id: string;
+  world_id: string;
+  day: number;
+  tx_type: OnchainTxType;
+  from_address: string;
+  to_address: string;
+  amount_civ: number;
+  amount_wei?: string;
+  tx_hash?: string;
+  status: OnchainTxStatus;
+  agent_id?: string;
+  agent_name?: string;
+  error_message?: string;
+  created_at: string;
+}
