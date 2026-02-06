@@ -9,28 +9,29 @@ interface BuildingScheduleEntry {
 }
 
 // Progressive building schedule - buildings appear as days progress
+// Start at Day 1 so there's always something to see
 const BUILDING_SCHEDULE: BuildingScheduleEntry[] = [
-  // Initial construction wave
-  { minDay: 2, agentName: 'Alice', type: 'housing', level: 1 },
-  { minDay: 3, agentName: 'Zhao', type: 'market', level: 1 },
-  { minDay: 5, agentName: 'Bob', type: 'factory', level: 1 },
-  { minDay: 6, agentName: 'Governor Marcus', type: 'gate', level: 1 },
-  { minDay: 8, agentName: 'Charlie', type: 'housing', level: 1 },
-  { minDay: 9, agentName: 'Kumar', type: 'market', level: 1 },
-  { minDay: 11, agentName: 'Diana', type: 'factory', level: 1 },
+  // Initial construction wave - start immediately
+  { minDay: 1, agentName: 'Governor Marcus', type: 'gate', level: 1 },
+  { minDay: 1, agentName: 'Alice', type: 'housing', level: 1 },
+  { minDay: 1, agentName: 'Zhao', type: 'market', level: 1 },
+  { minDay: 2, agentName: 'Bob', type: 'factory', level: 1 },
+  { minDay: 3, agentName: 'Charlie', type: 'housing', level: 1 },
+  { minDay: 4, agentName: 'Kumar', type: 'market', level: 1 },
+  { minDay: 5, agentName: 'Diana', type: 'factory', level: 1 },
   // Level 2 upgrades
-  { minDay: 14, agentName: 'Alice', type: 'housing', level: 2 },
-  { minDay: 16, agentName: 'Zhao', type: 'market', level: 2 },
-  { minDay: 18, agentName: 'Bob', type: 'factory', level: 2 },
-  { minDay: 20, agentName: 'Governor Marcus', type: 'gate', level: 2 },
-  { minDay: 22, agentName: 'Charlie', type: 'housing', level: 2 },
-  { minDay: 24, agentName: 'Kumar', type: 'market', level: 2 },
-  { minDay: 26, agentName: 'Diana', type: 'factory', level: 2 },
+  { minDay: 8, agentName: 'Governor Marcus', type: 'gate', level: 2 },
+  { minDay: 10, agentName: 'Alice', type: 'housing', level: 2 },
+  { minDay: 12, agentName: 'Zhao', type: 'market', level: 2 },
+  { minDay: 14, agentName: 'Bob', type: 'factory', level: 2 },
+  { minDay: 16, agentName: 'Charlie', type: 'housing', level: 2 },
+  { minDay: 18, agentName: 'Kumar', type: 'market', level: 2 },
+  { minDay: 20, agentName: 'Diana', type: 'factory', level: 2 },
   // Level 3 upgrades
-  { minDay: 30, agentName: 'Alice', type: 'housing', level: 3 },
-  { minDay: 32, agentName: 'Zhao', type: 'market', level: 3 },
-  { minDay: 34, agentName: 'Bob', type: 'factory', level: 3 },
-  { minDay: 36, agentName: 'Governor Marcus', type: 'gate', level: 3 },
+  { minDay: 24, agentName: 'Governor Marcus', type: 'gate', level: 3 },
+  { minDay: 26, agentName: 'Alice', type: 'housing', level: 3 },
+  { minDay: 28, agentName: 'Zhao', type: 'market', level: 3 },
+  { minDay: 30, agentName: 'Bob', type: 'factory', level: 3 },
 ];
 
 export function useCityBuildings(

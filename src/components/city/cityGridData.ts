@@ -77,14 +77,15 @@ export const AGENT_SLOTS: Record<string, [number, number]> = {
 };
 
 // Building placement cells (where buildings can appear)
+// These are DIFFERENT from agent slots so buildings don't overlap with agents
 export const BUILDING_CELLS: Record<string, [number, number]> = {
-  'Governor Marcus': [0, 5],
-  'Alice': [3, 1],
-  'Bob': [3, 2],
-  'Charlie': [4, 1],
-  'Diana': [4, 2],
-  'Zhao': [3, 7],
-  'Kumar': [3, 8],
+  'Governor Marcus': [1, 4],  // Government zone, different from agent slot
+  'Alice': [4, 1],           // Worker zone
+  'Bob': [4, 2],             // Worker zone
+  'Charlie': [3, 1],         // Worker zone (swapped with Alice)
+  'Diana': [3, 2],           // Worker zone (swapped with Bob)
+  'Zhao': [4, 7],            // Merchant zone
+  'Kumar': [4, 8],           // Merchant zone
 };
 
 // Zone labels to show on the grid (placed at specific cells)
