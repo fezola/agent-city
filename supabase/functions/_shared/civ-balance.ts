@@ -1,7 +1,7 @@
 // CIV Token (Civic Credit) — onchain balance reader + transaction sender
 // Uses ethers.js for wallet signing and ERC-20 transfers on Monad
 
-import { ethers } from "npm:ethers@6";
+import { ethers } from "https://esm.sh/ethers@6.13.4";
 
 export const CIV_TOKEN_NAME = "Civic Credit";
 export const CIV_TOKEN_SYMBOL = "CIV";
