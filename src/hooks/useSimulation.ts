@@ -51,6 +51,17 @@ export function useSimulation() {
   // Track per-agent earnings during day processing for onchain settlement
   const agentEarningsRef = useRef<Record<string, { earnings: number; buildingCost: number; wagerPayout: number }>>({});
 
+  // Track agent-to-agent transfers for onchain settlement
+  const agentTransfersRef = useRef<Array<{
+    fromAgentId: string;
+    fromAgentName: string;
+    toAgentId: string;
+    toAgentName: string;
+    amount: number;
+    txType: string;
+    reason?: string;
+  }>>([]);
+
   // Track day events for narrative/emergence
   const dayEventsRef = useRef<DayEvents>({
     governor_decisions: [],
@@ -668,6 +679,7 @@ export function useSimulation() {
 
     // Reset day events tracker
     agentEarningsRef.current = {};
+    agentTransfersRef.current = [];
     dayEventsRef.current = {
       governor_decisions: [],
       worker_decisions: [],
@@ -759,12 +771,13 @@ export function useSimulation() {
           }))
           .filter(s => s.earnings > 0 || s.buildingCost > 0 || s.wagerPayout > 0);
 
-        if (settlements.length > 0) {
+        if (settlements.length > 0 || agentTransfersRef.current.length > 0) {
           await supabase.functions.invoke('onchain-settle', {
             body: {
               worldId: worldState.id,
               day: worldState.day,
               settlements,
+              agentTransfers: agentTransfersRef.current,
             },
           });
         }
@@ -1065,6 +1078,70 @@ export function useSimulation() {
     await loadBuildings(worldState.id);
   };
 
+  // Helper: build otherAgents list for AI context
+  const buildOtherAgents = (excludeId: string) => {
+    return agents
+      .filter(a => a.id !== excludeId && a.is_alive)
+      .map(a => ({ name: a.name, type: a.agent_type, balance: a.balance, is_alive: a.is_alive }));
+  };
+
+  // Helper: process a transfer decision from any agent
+  const processTransfer = async (
+    fromAgent: Agent,
+    transfer: { to_agent_name: string; amount: number; tx_type: string; reason: string }
+  ) => {
+    if (!worldState || !transfer || !transfer.to_agent_name || transfer.amount <= 0) return;
+
+    const toAgent = agents.find(a => a.name === transfer.to_agent_name && a.is_alive);
+    if (!toAgent) {
+      console.warn(`Transfer target "${transfer.to_agent_name}" not found`);
+      return;
+    }
+
+    // Cap transfer at sender's balance (leave enough for fees)
+    const maxTransfer = Math.max(0, fromAgent.balance - worldState.participation_fee * 2);
+    const transferAmount = Math.min(transfer.amount, maxTransfer);
+    if (transferAmount <= 0) return;
+
+    // Update balances in DB
+    await supabase.from('agents').update({
+      balance: fromAgent.balance - transferAmount,
+    }).eq('id', fromAgent.id);
+    await supabase.from('agents').update({
+      balance: toAgent.balance + transferAmount,
+    }).eq('id', toAgent.id);
+
+    // Track for onchain settlement
+    agentTransfersRef.current.push({
+      fromAgentId: fromAgent.id,
+      fromAgentName: fromAgent.name,
+      toAgentId: toAgent.id,
+      toAgentName: toAgent.name,
+      amount: transferAmount,
+      txType: transfer.tx_type,
+      reason: transfer.reason,
+    });
+
+    // Log the transfer event
+    const txIcon = transfer.tx_type === 'bribe' ? '💎' : transfer.tx_type === 'gift' ? '🎁' : transfer.tx_type === 'trade' ? '🤝' : '🔧';
+    const eventDesc = `${txIcon} ${fromAgent.name} sent ${transferAmount.toFixed(0)} ${transfer.tx_type} to ${toAgent.name}: ${transfer.reason}`;
+    
+    await supabase.from('world_events').insert({
+      world_id: worldState.id,
+      day: worldState.day,
+      event_type: 'agent_transfer',
+      agent_id: fromAgent.id,
+      agent_name: fromAgent.name,
+      description: eventDesc,
+      details: {
+        to_agent: toAgent.name,
+        amount: transferAmount,
+        tx_type: transfer.tx_type,
+        reason: transfer.reason,
+      },
+    });
+  };
+
   // Process Governor AI decision
   const processGovernorDecision = async (governor: Agent) => {
     if (!worldState) return;
@@ -1085,6 +1162,7 @@ export function useSimulation() {
             merchant_stability: worldState.merchant_stability,
           },
           memories: memories[governor.id] || [],
+          otherAgents: buildOtherAgents(governor.id),
         },
       });
 
@@ -1147,6 +1225,11 @@ export function useSimulation() {
 
       dayEventsRef.current.governor_decisions.push(eventDescription);
 
+      // Handle optional transfer
+      if (decision.transfer && decision.transfer.amount > 0) {
+        await processTransfer(governor, decision.transfer);
+      }
+
     } catch (error) {
       console.error('Governor decision error:', error);
       await supabase.from('world_events').insert({
@@ -1179,6 +1262,7 @@ export function useSimulation() {
             city_health: worldState.city_health,
           },
           memories: memories[worker.id] || [],
+          otherAgents: buildOtherAgents(worker.id),
         },
       });
 
@@ -1258,6 +1342,11 @@ export function useSimulation() {
 
       dayEventsRef.current.worker_decisions.push(eventDescription);
 
+      // Handle optional transfer
+      if (decision.transfer && decision.transfer.amount > 0) {
+        await processTransfer(worker, decision.transfer);
+      }
+
       // Update satisfaction
       if (satisfactionChange !== 0) {
         await supabase.from('world_state').update({
@@ -1296,6 +1385,7 @@ export function useSimulation() {
             city_health: worldState.city_health,
           },
           memories: memories[merchant.id] || [],
+          otherAgents: buildOtherAgents(merchant.id),
         },
       });
 
@@ -1363,6 +1453,11 @@ export function useSimulation() {
       });
 
       dayEventsRef.current.merchant_decisions.push(eventDescription);
+
+      // Handle optional transfer
+      if (decision.transfer && decision.transfer.amount > 0) {
+        await processTransfer(merchant, decision.transfer);
+      }
 
     } catch (error) {
       console.error('Merchant decision error:', error);
