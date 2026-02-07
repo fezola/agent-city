@@ -302,7 +302,11 @@ export type OnchainTxType =
   | 'building_purchase'
   | 'wager_payout'
   | 'treasury_distribution'
-  | 'chaos_effect';
+  | 'chaos_effect'
+  | 'trade'
+  | 'gift'
+  | 'bribe'
+  | 'service_payment';
 
 export type OnchainTxStatus = 'pending' | 'confirmed' | 'failed';
 
