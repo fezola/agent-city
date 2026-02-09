@@ -1,44 +1,41 @@
-import { ReactNode, useMemo } from 'react';
+import { ReactNode } from 'react';
 import { GRID_CELLS, GRID_COLS, GRID_ROWS, TILE_SIZE } from './cityGridData';
 import { IsometricTile } from './IsometricTile';
 import { cn } from '@/lib/utils';
 
 interface IsometricGridProps {
-  tileContent?: Record<string, ReactNode>;
-  tileHighlights?: Record<string, string>;
+  tileContent: Record<string, ReactNode>;
+  tileHighlights: Record<string, string>;
+  isCollapsed: boolean;
   className?: string;
-  isCollapsed?: boolean;
 }
 
 export function IsometricGrid({
   tileContent,
   tileHighlights,
-  className,
   isCollapsed,
+  className,
 }: IsometricGridProps) {
-  const cells = useMemo(() => GRID_CELLS, []);
-
   return (
     <div
       className={cn(
-        'isometric-grid',
+        'rpg-grid',
         isCollapsed && 'collapsed-filter',
         className,
       )}
       style={{
+        display: 'grid',
         gridTemplateColumns: `repeat(${GRID_COLS}, ${TILE_SIZE}px)`,
         gridTemplateRows: `repeat(${GRID_ROWS}, ${TILE_SIZE}px)`,
       }}
     >
-      {cells.map((cell) => {
+      {GRID_CELLS.map((cell) => {
         const key = `${cell.row}-${cell.col}`;
 
         return (
           <IsometricTile
             key={key}
-            type={cell.type}
-            row={cell.row}
-            col={cell.col}
+            cell={cell}
             highlight={tileHighlights?.[key]}
           >
             {tileContent?.[key]}

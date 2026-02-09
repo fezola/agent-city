@@ -8,22 +8,24 @@ export interface GridCell {
   type: CellType;
 }
 
-// 10x8 grid layout
+// 14x10 grid layout — RPG pixel-art town
 // G=Government  W=Worker  M=Merchant  R=Road  P=Park  ~=Water  .=Grass
 const GRID_TEMPLATE: string[][] = [
-  ['.', '.', '.', 'G', 'G', 'G', 'G', '.', '.', '.'],
-  ['.', '.', 'R', 'G', 'G', 'G', 'G', 'R', '.', '.'],
-  ['.', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', '.'],
-  ['.', 'W', 'W', 'R', 'P', 'P', 'R', 'M', 'M', '.'],
-  ['.', 'W', 'W', 'R', 'P', 'P', 'R', 'M', 'M', '.'],
-  ['.', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', '.'],
-  ['~', '~', '~', '~', '~', '~', '~', '~', '~', '~'],
-  ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],
+  ['.', '.', '.', '.', 'G', 'G', 'G', 'G', 'G', 'G', '.', '.', '.', '.'],
+  ['.', '.', '.', 'R', 'G', 'G', 'G', 'G', 'G', 'G', 'R', '.', '.', '.'],
+  ['.', 'W', 'W', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'M', 'M', '.'],
+  ['.', 'W', 'W', 'R', '.', '.', '.', '.', '.', '.', 'R', 'M', 'M', '.'],
+  ['.', 'W', 'W', 'R', '.', 'P', 'P', 'P', 'P', '.', 'R', 'M', 'M', '.'],
+  ['.', 'W', 'W', 'R', '.', 'P', 'P', 'P', 'P', '.', 'R', 'M', 'M', '.'],
+  ['.', '.', '.', 'R', '.', '.', '.', '.', '.', '.', 'R', '.', '.', '.'],
+  ['.', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', '.'],
+  ['~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~'],
+  ['~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~'],
 ];
 
-export const GRID_ROWS = 8;
-export const GRID_COLS = 10;
-export const TILE_SIZE = 80; // px - larger for readability and better building display
+export const GRID_ROWS = 10;
+export const GRID_COLS = 14;
+export const TILE_SIZE = 48; // px — smaller tiles for pixel-art RPG feel
 
 const CHAR_TO_TYPE: Record<string, CellType> = {
   '.': 'grass',
@@ -43,7 +45,7 @@ export const GRID_CELLS: GridCell[] = GRID_TEMPLATE.flatMap((row, r) =>
   }))
 );
 
-// Cell type -> CSS colors (now handled in IsometricTile.tsx with SVG)
+// Cell type -> CSS colors (now handled in IsometricTile.tsx with CSS classes)
 // Keeping these for backwards compatibility
 export const CELL_COLORS: Record<CellType, string> = {
   grass: 'bg-emerald-900',
@@ -66,33 +68,35 @@ export const CELL_BORDERS: Record<CellType, string> = {
 };
 
 // Fixed agent slot assignments: agentName -> [row, col]
+// Governor in government zone, workers in worker quarter, merchants in merchant quarter
 export const AGENT_SLOTS: Record<string, [number, number]> = {
-  'Governor Marcus': [0, 4],
-  'Alice': [3, 1],
-  'Bob': [3, 2],
-  'Charlie': [4, 1],
-  'Diana': [4, 2],
-  'Zhao': [3, 7],
-  'Kumar': [3, 8],
+  'Governor Marcus': [0, 6],
+  'Alice': [2, 1],
+  'Bob': [2, 2],
+  'Charlie': [3, 1],
+  'Diana': [3, 2],
+  'Zhao': [2, 11],
+  'Kumar': [2, 12],
 };
 
 // Building placement cells (where buildings can appear)
 // These are DIFFERENT from agent slots so buildings don't overlap with agents
 export const BUILDING_CELLS: Record<string, [number, number]> = {
-  'Governor Marcus': [1, 4],  // Government zone, different from agent slot
-  'Alice': [4, 1],           // Worker zone
-  'Bob': [4, 2],             // Worker zone
-  'Charlie': [3, 1],         // Worker zone (swapped with Alice)
-  'Diana': [3, 2],           // Worker zone (swapped with Bob)
-  'Zhao': [4, 7],            // Merchant zone
-  'Kumar': [4, 8],           // Merchant zone
+  'Governor Marcus': [1, 7],   // Government zone, different from agent slot
+  'Alice': [4, 1],             // Worker zone
+  'Bob': [4, 2],               // Worker zone
+  'Charlie': [5, 1],           // Worker zone
+  'Diana': [5, 2],             // Worker zone
+  'Zhao': [4, 11],             // Merchant zone
+  'Kumar': [4, 12],            // Merchant zone
 };
 
 // Zone labels to show on the grid (placed at specific cells)
 export const ZONE_LABELS: { row: number; col: number; label: string; color: string }[] = [
-  { row: 0, col: 3, label: 'GOV DISTRICT', color: 'text-amber-400' },
-  { row: 3, col: 4, label: 'CITY PARK', color: 'text-green-400' },
-  { row: 6, col: 4, label: 'RIVER', color: 'text-cyan-400' },
+  { row: 0, col: 5, label: 'TOWN HALL', color: 'text-amber-400' },
+  { row: 3, col: 1, label: 'WORKER QUARTER', color: 'text-blue-400' },
+  { row: 3, col: 11, label: 'MARKET DISTRICT', color: 'text-purple-400' },
+  { row: 4, col: 6, label: 'TOWN SQUARE', color: 'text-green-400' },
 ];
 
 // Legend entries for the city map

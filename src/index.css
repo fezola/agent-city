@@ -104,153 +104,173 @@ All colors MUST be HSL.
   }
 }
 
-/* ==================== Isometric City View ==================== */
+/* ==================== Pixel-Art RPG City View ==================== */
 
-/* Dynamic rotation via CSS custom properties (set on .iso-viewport-inner) */
-.isometric-grid {
-  display: grid;
-  transform: rotateX(var(--rotX, 60deg)) rotateZ(var(--rotZ, -45deg));
-  transform-style: preserve-3d;
-  gap: 0;
+/* RPG Panel — dark navy with neon border glow */
+.rpg-panel {
+  background: #0a1628;
+  border: 2px solid #1e3a5f;
+  box-shadow: 0 0 8px rgba(79, 195, 247, 0.15), inset 0 0 8px rgba(0, 0, 0, 0.5);
+  image-rendering: pixelated;
 }
 
-.iso-tile {
-  width: 80px;
-  height: 80px;
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.2s ease;
+/* Pixel border via box-shadow stacking */
+.pixel-border {
+  box-shadow:
+    -2px 0 0 0 #1e3a5f,
+    2px 0 0 0 #1e3a5f,
+    0 -2px 0 0 #1e3a5f,
+    0 2px 0 0 #1e3a5f;
 }
 
-.iso-tile:hover {
-  transform: translateZ(5px);
-  z-index: 10;
+/* Neon text glow */
+.neon-text {
+  text-shadow: 0 0 4px currentColor, 0 0 8px currentColor;
 }
 
-/* Counter-transform for readable labels - dynamically matches rotation */
-.iso-label {
-  transform: rotateZ(calc(var(--rotZ, -45deg) * -1)) rotateX(calc(var(--rotX, 60deg) * -1));
-  transform-origin: center center;
-}
-
-/* 3D building cube faces */
-.building-top {
-  position: absolute;
-  transform-style: preserve-3d;
-}
-
-.building-front {
-  position: absolute;
-  transform-origin: bottom center;
-  transform: rotateX(-90deg);
-}
-
-.building-side {
-  position: absolute;
-  transform-origin: center right;
-  transform: rotateY(90deg);
-}
-
-/* Isometric viewport */
-.iso-viewport {
+/* CRT scanline overlay — apply to .rpg-viewport */
+.rpg-viewport {
   overflow: hidden;
   cursor: grab;
-  perspective: 1200px;
+  position: relative;
 }
 
-.iso-viewport:active {
+.rpg-viewport:active {
   cursor: grabbing;
 }
 
-.iso-viewport-inner {
-  transform-style: preserve-3d;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 100%;
-  min-height: 100%;
+.rpg-viewport::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
 }
 
-/* Water shimmer animation */
-@keyframes water-shimmer {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 0.7; }
+/* Pixel noise texture overlay */
+.rpg-viewport::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 49;
+  opacity: 0.03;
+  background: radial-gradient(circle, #fff 1px, transparent 1px);
+  background-size: 4px 4px;
 }
 
-.water-cell {
-  animation: water-shimmer 3s ease-in-out infinite;
+/* Flat 2D grid */
+.rpg-grid {
+  image-rendering: pixelated;
 }
 
-/* Building construction scale-in */
-@keyframes building-appear {
-  0% { transform: translateZ(0) scale(0); opacity: 0; }
-  50% { transform: translateZ(var(--build-height)) scale(1.15); opacity: 1; }
-  70% { transform: translateZ(var(--build-height)) scale(0.95); opacity: 1; }
-  100% { transform: translateZ(var(--build-height)) scale(1); opacity: 1; }
+/* RPG tile */
+.rpg-tile {
+  position: relative;
+  transition: box-shadow 0.15s ease;
+  image-rendering: pixelated;
+}
+
+.rpg-tile:hover {
+  box-shadow: inset 0 0 8px rgba(79, 195, 247, 0.3);
+  z-index: 10;
+}
+
+/* Tile type backgrounds */
+.tile-grass {
+  background: #1b3a1b;
+  background-image: radial-gradient(circle, #2d5a2d 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+.tile-road {
+  background: #3a3530;
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+.tile-government {
+  background: #3a2a10;
+  background-image: radial-gradient(circle, rgba(255, 215, 0, 0.08) 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+
+.tile-worker {
+  background: #0d1f3a;
+  background-image: radial-gradient(circle, rgba(68, 138, 255, 0.06) 1px, transparent 1px);
+  background-size: 10px 10px;
+}
+
+.tile-merchant {
+  background: #2a0d3a;
+  background-image: radial-gradient(circle, rgba(224, 64, 251, 0.06) 1px, transparent 1px);
+  background-size: 10px 10px;
+}
+
+.tile-park {
+  background: #1b4a1b;
+  background-image: radial-gradient(circle, #2a6a2a 1.5px, transparent 1.5px);
+  background-size: 6px 6px;
+}
+
+.tile-water {
+  background: linear-gradient(135deg, #0d3a6a, #0d47a1, #0d3a6a);
+  background-size: 48px 48px;
+  animation: water-flow 2s linear infinite;
+}
+
+@keyframes water-flow {
+  0% { background-position: 0 0; }
+  100% { background-position: 48px 0; }
+}
+
+/* Building construction animation (pixel-style) */
+@keyframes building-construct {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  80% { transform: scale(0.95); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.building-construct {
+  animation: building-construct 0.6s ease-out forwards;
+}
+
+/* New building glow */
+@keyframes construction-glow {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(0, 230, 118, 0.4)); }
+  50% { filter: drop-shadow(0 0 12px rgba(0, 230, 118, 0.8)); }
 }
 
 .building-new {
-  animation: building-appear 0.8s ease-out forwards;
+  animation: construction-glow 1.5s ease-in-out infinite;
 }
 
-/* New building construction animation with glow */
-@keyframes building-construct {
-  0% { 
-    transform: translateX(-50%) scale(0) translateY(20px); 
-    opacity: 0; 
-  }
-  50% { 
-    transform: translateX(-50%) scale(1.1) translateY(-5px); 
-    opacity: 1; 
-  }
-  70% { 
-    transform: translateX(-50%) scale(0.95) translateY(2px); 
-    opacity: 1; 
-  }
-  100% { 
-    transform: translateX(-50%) scale(1) translateY(0); 
-    opacity: 1; 
-  }
-}
-
-.building-construct {
-  animation: building-construct 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-/* Pulsing glow for new buildings */
-@keyframes construction-glow {
-  0%, 100% { 
-    filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.6)); 
-  }
-  50% { 
-    filter: drop-shadow(0 0 20px rgba(34, 197, 94, 1)) drop-shadow(0 0 30px rgba(34, 197, 94, 0.5)); 
-  }
-}
-
-.building-construct {
-  animation: building-construct 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-             construction-glow 1.5s ease-in-out infinite;
-}
-
-/* Construction sparkle animations */
+/* Construction sparkles (pixel squares) */
 @keyframes sparkle-float-1 {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 1; }
-  50% { transform: translate(-8px, -15px) scale(0.5); opacity: 0; }
+  0%, 100% { transform: translate(0, 0); opacity: 1; }
+  50% { transform: translate(-6px, -12px); opacity: 0; }
 }
-
 @keyframes sparkle-float-2 {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 1; }
-  50% { transform: translate(10px, -20px) scale(0.3); opacity: 0; }
+  0%, 100% { transform: translate(0, 0); opacity: 1; }
+  50% { transform: translate(8px, -16px); opacity: 0; }
 }
-
 @keyframes sparkle-float-3 {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 1; }
-  50% { transform: translate(5px, -25px) scale(0.4); opacity: 0; }
+  0%, 100% { transform: translate(0, 0); opacity: 1; }
+  50% { transform: translate(4px, -20px); opacity: 0; }
 }
-
 @keyframes sparkle-float-4 {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 1; }
-  50% { transform: translate(-12px, -10px) scale(0.6); opacity: 0; }
+  0%, 100% { transform: translate(0, 0); opacity: 1; }
+  50% { transform: translate(-10px, -8px); opacity: 0; }
 }
 
 .sparkle-1 { animation: sparkle-float-1 1.2s ease-in-out infinite; }
@@ -259,60 +279,54 @@ All colors MUST be HSL.
 .sparkle-4 { animation: sparkle-float-4 1.3s ease-in-out infinite 0.1s; }
 
 /* Smoke animation for factories */
-@keyframes smoke-rise {
-  0% { transform: translateY(0) scale(1); opacity: 0.4; }
-  100% { transform: translateY(-15px) scale(1.5); opacity: 0; }
-}
-
-.smoke-animate circle {
+.smoke-animate rect {
   animation: smoke-rise 2s ease-out infinite;
 }
-
-.smoke-animate circle:nth-child(2) {
+.smoke-animate rect:nth-child(2) {
   animation-delay: 0.5s;
 }
 
-/* Chaos shake effect - uses CSS variables for rotation + translate shake */
+/* Chaos shake effect (flat 2D) */
 @keyframes chaos-shake {
-  0%, 100% { transform: rotateX(var(--rotX, 60deg)) rotateZ(var(--rotZ, -45deg)) translate(0, 0); }
-  10% { transform: rotateX(var(--rotX, 60deg)) rotateZ(var(--rotZ, -45deg)) translate(-3px, 1px); }
-  20% { transform: rotateX(var(--rotX, 60deg)) rotateZ(var(--rotZ, -45deg)) translate(3px, -1px); }
-  30% { transform: rotateX(var(--rotX, 60deg)) rotateZ(var(--rotZ, -45deg)) translate(-1px, 3px); }
-  40% { transform: rotateX(var(--rotX, 60deg)) rotateZ(var(--rotZ, -45deg)) translate(1px, -3px); }
-  50% { transform: rotateX(var(--rotX, 60deg)) rotateZ(var(--rotZ, -45deg)) translate(-3px, 0); }
-  60% { transform: rotateX(var(--rotX, 60deg)) rotateZ(var(--rotZ, -45deg)) translate(3px, 1px); }
-  70% { transform: rotateX(var(--rotX, 60deg)) rotateZ(var(--rotZ, -45deg)) translate(-1px, -1px); }
-  80% { transform: rotateX(var(--rotX, 60deg)) rotateZ(var(--rotZ, -45deg)) translate(1px, 3px); }
-  90% { transform: rotateX(var(--rotX, 60deg)) rotateZ(var(--rotZ, -45deg)) translate(0, -3px); }
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-2px, 1px); }
+  20% { transform: translate(2px, -1px); }
+  30% { transform: translate(-1px, 2px); }
+  40% { transform: translate(1px, -2px); }
+  50% { transform: translate(-2px, 0); }
+  60% { transform: translate(2px, 1px); }
+  70% { transform: translate(-1px, -1px); }
+  80% { transform: translate(1px, 2px); }
+  90% { transform: translate(0, -2px); }
 }
 
-.chaos-active .isometric-grid {
-  animation: chaos-shake 0.5s ease-in-out infinite;
+.chaos-active .rpg-grid {
+  animation: chaos-shake 0.4s ease-in-out infinite;
 }
 
 /* Day transition banner */
 @keyframes day-banner {
-  0% { opacity: 0; transform: translateY(10px) scale(0.95); }
-  15% { opacity: 1; transform: translateY(0) scale(1); }
-  85% { opacity: 1; transform: translateY(0) scale(1); }
-  100% { opacity: 0; transform: translateY(-10px) scale(0.95); }
+  0% { opacity: 0; transform: translateY(8px); }
+  15% { opacity: 1; transform: translateY(0); }
+  85% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-8px); }
 }
 
 .day-banner {
-  animation: day-banner 2s ease-in-out forwards;
+  animation: day-banner 2.5s ease-in-out forwards;
 }
 
-/* Golden glow for governor phase */
+/* Governor phase glow */
 @keyframes gov-glow {
-  0%, 100% { box-shadow: inset 0 0 12px rgba(251, 191, 36, 0); }
-  50% { box-shadow: inset 0 0 12px rgba(251, 191, 36, 0.4); }
+  0%, 100% { box-shadow: inset 0 0 8px rgba(255, 215, 0, 0); }
+  50% { box-shadow: inset 0 0 8px rgba(255, 215, 0, 0.3); }
 }
 
 .gov-phase-glow {
   animation: gov-glow 1.5s ease-in-out infinite;
 }
 
-/* Particle burst for construction */
+/* Particle burst */
 @keyframes particle-burst {
   0% { transform: translate(0, 0) scale(1); opacity: 1; }
   100% { transform: translate(var(--px), var(--py)) scale(0); opacity: 0; }
@@ -322,22 +336,22 @@ All colors MUST be HSL.
   animation: particle-burst 0.8s ease-out forwards;
 }
 
-/* Red pulse for chaos overlay */
+/* Chaos overlay */
 @keyframes chaos-pulse {
   0%, 100% { opacity: 0; }
-  50% { opacity: 0.15; }
+  50% { opacity: 0.12; }
 }
 
 .chaos-overlay {
-  animation: chaos-pulse 1s ease-in-out infinite;
+  animation: chaos-pulse 0.8s ease-in-out infinite;
 }
 
 /* Collapse desaturation */
 .collapsed-filter {
-  filter: saturate(0.3) brightness(0.7);
+  filter: saturate(0.2) brightness(0.6);
 }
 
-/* Toast slide in */
+/* Toast slide */
 @keyframes toast-slide {
   0% { transform: translateX(-100%); opacity: 0; }
   100% { transform: translateX(0); opacity: 1; }
@@ -345,17 +359,6 @@ All colors MUST be HSL.
 
 .event-toast {
   animation: toast-slide 0.3s ease-out forwards;
-}
-
-/* Hammer bounce for building phase */
-@keyframes hammer-bounce {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-20deg); }
-  75% { transform: rotate(20deg); }
-}
-
-.hammer-active {
-  animation: hammer-bounce 0.5s ease-in-out infinite;
 }
 
 /* Speech bubble pop-in */
@@ -369,33 +372,44 @@ All colors MUST be HSL.
   animation: speech-pop 0.4s ease-out forwards;
 }
 
-/* Agent activity pulse */
+/* Agent active pulse */
 @keyframes activity-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4); }
-  50% { box-shadow: 0 0 0 6px rgba(52, 211, 153, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); }
+  50% { box-shadow: 0 0 0 4px rgba(0, 230, 118, 0); }
 }
 
 .agent-active-pulse {
   animation: activity-pulse 2s ease-in-out infinite;
 }
 
-/* Construction sparkle */
-@keyframes sparkle-rotate {
-  0% { transform: rotate(0deg) scale(1); opacity: 1; }
-  50% { transform: rotate(180deg) scale(1.3); opacity: 0.7; }
-  100% { transform: rotate(360deg) scale(1); opacity: 1; }
+/* RPG button hover */
+.rpg-btn {
+  background: #0a1628;
+  border: 2px solid #1e3a5f;
+  color: #4fc3f7;
+  transition: all 0.15s ease;
+  image-rendering: pixelated;
 }
 
-.construction-sparkle {
-  animation: sparkle-rotate 1.5s linear infinite;
+.rpg-btn:hover {
+  border-color: #4fc3f7;
+  box-shadow: 0 0 8px rgba(79, 195, 247, 0.4);
 }
 
-/* Coin float animation for fee/tax collection */
-@keyframes coin-float {
-  0% { transform: translateY(0) scale(1); opacity: 1; }
-  100% { transform: translateY(-30px) scale(0.5); opacity: 0; }
+.rpg-btn:active {
+  transform: translateY(1px);
 }
 
-.coin-float {
-  animation: coin-float 1.2s ease-out forwards;
+/* HP/MP bar styling */
+.rpg-bar {
+  background: #0a0a0a;
+  border: 1px solid #1e3a5f;
+  height: 6px;
+  overflow: hidden;
+}
+
+.rpg-bar-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+  image-rendering: pixelated;
 }

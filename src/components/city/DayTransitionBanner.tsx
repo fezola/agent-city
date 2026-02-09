@@ -12,7 +12,7 @@ export function DayTransitionBanner({ day }: DayTransitionBannerProps) {
     if (day !== prevDay.current && day > 0) {
       prevDay.current = day;
       setShowBanner(true);
-      const timer = setTimeout(() => setShowBanner(false), 2200);
+      const timer = setTimeout(() => setShowBanner(false), 2800);
       return () => clearTimeout(timer);
     }
   }, [day]);
@@ -22,10 +22,23 @@ export function DayTransitionBanner({ day }: DayTransitionBannerProps) {
   return (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-40">
       <div className="day-banner">
-        <div className="bg-zinc-800 border-2 border-emerald-500 rounded-lg px-10 py-5 shadow-2xl">
-          <span className="text-emerald-400 font-mono font-bold text-3xl tracking-wider">
-            Day {day}
-          </span>
+        <div className="rpg-panel px-12 py-5 border-rpg-gold border-2">
+          {/* Decorative pixel lines */}
+          <div className="flex items-center gap-3">
+            <div className="flex gap-0.5">
+              <div className="w-2 h-0.5 bg-rpg-gold-dim" />
+              <div className="w-4 h-0.5 bg-rpg-gold" />
+              <div className="w-2 h-0.5 bg-rpg-gold-dim" />
+            </div>
+            <span className="font-pixel text-lg text-rpg-gold neon-text tracking-wider">
+              DAY {day}
+            </span>
+            <div className="flex gap-0.5">
+              <div className="w-2 h-0.5 bg-rpg-gold-dim" />
+              <div className="w-4 h-0.5 bg-rpg-gold" />
+              <div className="w-2 h-0.5 bg-rpg-gold-dim" />
+            </div>
+          </div>
         </div>
       </div>
     </div>

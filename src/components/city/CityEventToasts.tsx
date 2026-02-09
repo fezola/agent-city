@@ -50,17 +50,22 @@ export function CityEventToasts({ events, currentDay }: CityEventToastsProps) {
         <div
           key={toast.id}
           className={cn(
-            'event-toast px-3 py-2 rounded-lg text-xs leading-relaxed',
-            'bg-zinc-800 border border-zinc-600',
-            toast.type === 'chaos' && 'border-red-600 bg-red-950',
-            toast.type === 'collapse_check' && 'border-orange-600',
-            toast.type === 'building' && 'border-emerald-600',
+            'event-toast rpg-panel px-3 py-2 text-xs leading-relaxed',
+            toast.type === 'chaos' && 'border-rpg-hp-red',
+            toast.type === 'collapse_check' && 'border-rpg-lantern',
+            toast.type === 'building' && 'border-rpg-hp-green',
           )}
         >
-          <span className="text-xs text-emerald-400 font-bold uppercase mr-1.5">
-            {toast.type}
+          {/* Pixel icon per type */}
+          <span className={cn(
+            'font-pixel text-[7px] uppercase mr-1.5',
+            toast.type === 'chaos' ? 'text-rpg-hp-red' :
+            toast.type === 'building' ? 'text-rpg-hp-green' :
+            'text-rpg-panel-glow',
+          )}>
+            {toast.type === 'chaos' ? '!' : toast.type === 'building' ? '+' : '>'} {toast.type}
           </span>
-          <span className="text-zinc-200">{toast.text}</span>
+          <span className="font-retro text-sm text-zinc-200">{toast.text}</span>
         </div>
       ))}
     </div>
