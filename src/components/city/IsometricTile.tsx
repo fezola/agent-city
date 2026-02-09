@@ -1,5 +1,6 @@
 import { ReactNode, useMemo } from 'react';
-import { GridCell, TILE_SIZE, ZONE_LABELS } from './cityGridData';
+import { GridCell, TILE_SIZE, ZONE_LABELS, DECORATIONS } from './cityGridData';
+import { EnvironmentSprite } from './EnvironmentSprites';
 import { cn } from '@/lib/utils';
 
 interface IsometricTileProps {
@@ -16,14 +17,20 @@ const TILE_CLASS: Record<string, string> = {
   merchant: 'tile-merchant',
   park: 'tile-park',
   water: 'tile-water',
+  plaza: 'tile-plaza',
 };
 
 export function IsometricTile({ cell, children, highlight }: IsometricTileProps) {
   const tileClass = TILE_CLASS[cell.type] ?? 'tile-grass';
 
-  // Check if there's a zone label for this cell
   const zoneLabel = useMemo(
     () => ZONE_LABELS.find((z) => z.row === cell.row && z.col === cell.col),
+    [cell.row, cell.col]
+  );
+
+  // Check for decoration on this cell (only show if no children content)
+  const deco = useMemo(
+    () => DECORATIONS.find((d) => d.row === cell.row && d.col === cell.col),
     [cell.row, cell.col]
   );
 
@@ -45,7 +52,14 @@ export function IsometricTile({ cell, children, highlight }: IsometricTileProps)
         </span>
       )}
 
-      {/* Content overlay */}
+      {/* Environmental decoration (only if no agent/building content) */}
+      {deco && !children && (
+        <div className="absolute inset-0 flex items-end justify-center pointer-events-none z-5 pb-1">
+          <EnvironmentSprite type={deco.type} />
+        </div>
+      )}
+
+      {/* Content overlay (agents, buildings) */}
       {children && (
         <div className="absolute inset-0 flex items-center justify-center z-20">
           {children}

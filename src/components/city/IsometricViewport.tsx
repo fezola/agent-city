@@ -11,7 +11,6 @@ export function IsometricViewport({ children }: IsometricViewportProps) {
   const lastPos = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Use native wheel listener with { passive: false } to allow preventDefault
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -20,7 +19,7 @@ export function IsometricViewport({ children }: IsometricViewportProps) {
       e.preventDefault();
       setZoom((prev) => {
         const next = prev - e.deltaY * 0.001;
-        return Math.max(0.5, Math.min(2.0, next));
+        return Math.max(0.5, Math.min(2.5, next));
       });
     };
 
@@ -53,10 +52,10 @@ export function IsometricViewport({ children }: IsometricViewportProps) {
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
-      style={{
-        background: 'repeating-conic-gradient(#1a2332 0% 25%, #202d3d 0% 50%) 0 0 / 48px 48px',
-      }}
     >
+      {/* Ambient warm glow layer */}
+      <div className="absolute inset-0 pointer-events-none z-0 city-ambient-glow" />
+
       <div
         style={{
           transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
