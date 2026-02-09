@@ -8,7 +8,9 @@ import {
   sendCivTransfer,
   sendAgentToAgentTransfer,
   CIV_TOKEN_SYMBOL,
+  getCivConfig,
 } from "../_shared/civ-balance.ts";
+import { ethers } from "https://esm.sh/ethers@6.13.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -88,6 +90,42 @@ serve(async (req) => {
     const dbRecords: Record<string, unknown>[] = [];
 
     console.log(`Settlement for Day ${day}: ${settlements?.length || 0} agents, ${agentTransfers?.length || 0} transfers, nonce=${currentNonce}`);
+
+    // ===== FUND AGENT WALLETS WITH MON FOR GAS =====
+    // Each agent needs a small amount of MON to pay gas fees for P2P transfers
+    const MIN_MON_BALANCE = ethers.parseEther("0.001"); // 0.001 MON minimum
+    const MON_FUNDING_AMOUNT = ethers.parseEther("0.005"); // Fund with 0.005 MON
+
+    const allAgentNames = new Set<string>();
+    for (const s of (settlements || [])) allAgentNames.add(s.agentName);
+    for (const t of (agentTransfers || [])) {
+      allAgentNames.add(t.fromAgentName);
+      allAgentNames.add(t.toAgentName);
+    }
+
+    for (const agentName of allAgentNames) {
+      try {
+        const agentAddress = deriveAgentAddress(agentName);
+        const cfg = getCivConfig();
+        const provider = new ethers.JsonRpcProvider(cfg.rpcUrl);
+        const monBalance = await provider.getBalance(agentAddress);
+
+        if (monBalance < MIN_MON_BALANCE) {
+          console.log(`Funding ${agentName} (${agentAddress}) with MON for gas — current: ${ethers.formatEther(monBalance)} MON`);
+          const tx = await wallet.sendTransaction({
+            to: agentAddress,
+            value: MON_FUNDING_AMOUNT,
+            nonce: currentNonce,
+          });
+          await tx.wait(1);
+          currentNonce++;
+          console.log(`Funded ${agentName} with 0.005 MON (tx: ${tx.hash})`);
+        }
+      } catch (err) {
+        console.error(`Failed to fund ${agentName} with MON:`, err instanceof Error ? err.message : err);
+        // Non-blocking: continue settlement even if gas funding fails
+      }
+    }
 
     // ===== TREASURY → AGENT SETTLEMENTS =====
     for (const agent of (settlements || [])) {

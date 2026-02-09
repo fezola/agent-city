@@ -15,16 +15,8 @@ import {
   Heart,
   AlertTriangle
 } from 'lucide-react';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
 import { cn } from '@/lib/utils';
+import OnchainBalanceViewer from '@/components/agent/OnchainBalanceViewer';
 
 const moodEmoji: Record<string, string> = {
   ecstatic: '🤩',
@@ -188,6 +180,13 @@ export default function AgentDetail() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Onchain Wallet */}
+      <OnchainBalanceViewer
+        agentName={agent.name}
+        agentId={agent.id}
+        simulationBalance={agent.balance}
+      />
 
       {/* Last Action Reasoning */}
       {agent.last_action_reason && (
