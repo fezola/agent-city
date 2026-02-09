@@ -119,6 +119,47 @@ export const DECORATIONS: DecoPlacement[] = [
   { row: 3, col: 14, type: 'cart' },
 ];
 
+// Zone buildings - permanent structures on zone tiles that make districts look real
+// key: "row-col", value: { zone: 'worker'|'merchant'|'government', variant: number }
+export interface ZoneBuildingEntry {
+  zone: 'worker' | 'merchant' | 'government';
+  variant: number;
+}
+
+export const ZONE_BUILDINGS: Record<string, ZoneBuildingEntry> = {
+  // Government zone buildings
+  '0-5': { zone: 'government', variant: 2 },  // Tower
+  '0-6': { zone: 'government', variant: 0 },  // Main hall (has zone label)
+  '0-8': { zone: 'government', variant: 3 },  // Archive
+  '0-9': { zone: 'government', variant: 1 },  // Hall
+  '1-5': { zone: 'government', variant: 3 },  // Archive
+  '1-6': { zone: 'government', variant: 1 },  // Hall
+  '1-9': { zone: 'government', variant: 2 },  // Tower
+  '1-10': { zone: 'government', variant: 0 }, // Main
+  // Worker zone buildings
+  '2-2': { zone: 'worker', variant: 0 },   // House 1
+  '2-3': { zone: 'worker', variant: 2 },   // Workshop
+  '3-2': { zone: 'worker', variant: 1 },   // House 2
+  '3-3': { zone: 'worker', variant: 3 },   // Barracks
+  '4-2': { zone: 'worker', variant: 2 },   // Workshop
+  '4-3': { zone: 'worker', variant: 0 },   // House 1
+  '5-2': { zone: 'worker', variant: 3 },   // Barracks
+  '5-3': { zone: 'worker', variant: 1 },   // House 2
+  '6-2': { zone: 'worker', variant: 0 },   // House 1
+  '6-3': { zone: 'worker', variant: 2 },   // Workshop
+  // Merchant zone buildings
+  '2-12': { zone: 'merchant', variant: 0 },  // Shop 1
+  '2-13': { zone: 'merchant', variant: 2 },  // Tavern
+  '3-12': { zone: 'merchant', variant: 1 },  // Shop 2
+  '3-13': { zone: 'merchant', variant: 3 },  // Warehouse
+  '4-12': { zone: 'merchant', variant: 2 },  // Tavern
+  '4-13': { zone: 'merchant', variant: 0 },  // Shop 1
+  '5-12': { zone: 'merchant', variant: 3 },  // Warehouse
+  '5-13': { zone: 'merchant', variant: 1 },  // Shop 2
+  '6-12': { zone: 'merchant', variant: 0 },  // Shop 1
+  '6-13': { zone: 'merchant', variant: 2 },  // Tavern
+};
+
 // Cell type -> CSS colors (now handled in IsometricTile.tsx with CSS classes)
 export const CELL_COLORS: Record<CellType, string> = {
   grass: 'bg-emerald-900',
