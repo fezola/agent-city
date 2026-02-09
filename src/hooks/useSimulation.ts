@@ -1140,6 +1140,44 @@ export function useSimulation() {
         reason: transfer.reason,
       },
     });
+
+    // Create memory for the RECEIVER so they remember who helped/bribed them
+    const emotionMap: Record<string, string> = {
+      gift: 'gratitude',
+      bribe: 'suspicion',
+      trade: 'satisfaction',
+      service_payment: 'contentment',
+    };
+    const impactMap: Record<string, string> = {
+      gift: 'positive',
+      bribe: 'negative',
+      trade: 'positive',
+      service_payment: 'positive',
+    };
+    await supabase.from('agent_memories').insert({
+      agent_id: toAgent.id,
+      day: worldState.day,
+      event: `Received ${transferAmount.toFixed(0)} CIV ${transfer.tx_type} from ${fromAgent.name}`,
+      impact: impactMap[transfer.tx_type] || 'neutral',
+      emotion: emotionMap[transfer.tx_type] || 'curiosity',
+      details: transfer.reason,
+    });
+
+    // Create memory for the SENDER so they remember their strategic moves
+    const senderEmotionMap: Record<string, string> = {
+      gift: 'generosity',
+      bribe: 'cunning',
+      trade: 'confidence',
+      service_payment: 'pragmatism',
+    };
+    await supabase.from('agent_memories').insert({
+      agent_id: fromAgent.id,
+      day: worldState.day,
+      event: `Sent ${transferAmount.toFixed(0)} CIV ${transfer.tx_type} to ${toAgent.name}`,
+      impact: 'neutral',
+      emotion: senderEmotionMap[transfer.tx_type] || 'determination',
+      details: transfer.reason,
+    });
   };
 
   // Process Governor AI decision
