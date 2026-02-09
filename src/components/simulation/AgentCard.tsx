@@ -42,11 +42,11 @@ export function AgentCard({ agent, memories = [], isHighlighted }: AgentCardProp
   const getTypeColor = () => {
     switch (agent.agent_type) {
       case 'governor':
-        return 'from-amber-950/80 to-amber-900/40 border-amber-700/50';
+        return 'bg-card border-amber-700/30';
       case 'worker':
-        return 'from-blue-950/80 to-blue-900/40 border-blue-700/50';
+        return 'bg-card border-blue-700/30';
       case 'merchant':
-        return 'from-purple-950/80 to-purple-900/40 border-purple-700/50';
+        return 'bg-card border-purple-700/30';
     }
   };
 
@@ -79,7 +79,7 @@ export function AgentCard({ agent, memories = [], isHighlighted }: AgentCardProp
   }
 
   return (
-    <Card className={`bg-gradient-to-br ${getTypeColor()} transition-all duration-300 ${isHighlighted ? 'ring-2 ring-primary scale-[1.02]' : ''}`}>
+    <Card className={`${getTypeColor()} transition-all duration-300 ${isHighlighted ? 'ring-2 ring-primary scale-[1.02]' : ''}`}>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between text-base">
           <div className="flex items-center gap-2">
