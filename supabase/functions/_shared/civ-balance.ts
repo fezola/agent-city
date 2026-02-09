@@ -1,7 +1,7 @@
 // CIV Token (Civic Credit) — onchain balance reader + transaction sender
 // Uses ethers.js for wallet signing and ERC-20 transfers on Monad
 
-import { ethers } from "npm:ethers@6";
+import { ethers } from "https://esm.sh/ethers@6.13.4";
 
 export const CIV_TOKEN_NAME = "Civic Credit";
 export const CIV_TOKEN_SYMBOL = "CIV";
@@ -130,24 +130,90 @@ const ERC20_ABI = [
  * Requires TREASURY_PRIVATE_KEY env var.
  */
 export function getTreasuryWallet(): ethers.Wallet {
-  const privateKey = Deno.env.get("TREASURY_PRIVATE_KEY");
-  if (!privateKey) throw new Error("TREASURY_PRIVATE_KEY not set");
+  const raw = Deno.env.get("TREASURY_PRIVATE_KEY");
+  if (!raw) throw new Error("TREASURY_PRIVATE_KEY not set");
+  // Trim whitespace and ensure 0x prefix
+  let privateKey = raw.trim();
+  if (!privateKey.startsWith("0x")) privateKey = "0x" + privateKey;
   const cfg = getCivConfig();
   const provider = new ethers.JsonRpcProvider(cfg.rpcUrl);
   return new ethers.Wallet(privateKey, provider);
 }
 
 /**
- * Derive a deterministic Monad address for an agent.
- * Uses keccak256(treasury_address + ":" + agentName) → last 20 bytes.
- * These addresses are passive recipients (no private key needed).
+ * Derive a deterministic HD wallet for an agent.
+ * Uses keccak256(treasury_private_key + ":" + agentName) as the agent's private key.
+ * Each agent gets their own wallet and can sign transactions.
+ */
+export function deriveAgentWallet(agentName: string): ethers.Wallet {
+  const treasuryKey = Deno.env.get("TREASURY_PRIVATE_KEY");
+  if (!treasuryKey) throw new Error("TREASURY_PRIVATE_KEY not set");
+  const cleanKey = treasuryKey.trim();
+  const seed = ethers.keccak256(
+    ethers.toUtf8Bytes(`${cleanKey}:agent:${agentName}`)
+  );
+  const cfg = getCivConfig();
+  const provider = new ethers.JsonRpcProvider(cfg.rpcUrl);
+  return new ethers.Wallet(seed, provider);
+}
+
+/**
+ * Derive a deterministic Monad address for an agent (without needing full wallet).
+ * Compatible with deriveAgentWallet — same private key derivation.
  */
 export function deriveAgentAddress(agentName: string): string {
-  const treasuryAddress = Deno.env.get("TREASURY_WALLET_ADDRESS") || "";
-  const hash = ethers.keccak256(
-    ethers.toUtf8Bytes(`${treasuryAddress}:${agentName}`)
+  const treasuryKey = Deno.env.get("TREASURY_PRIVATE_KEY");
+  if (!treasuryKey) throw new Error("TREASURY_PRIVATE_KEY not set");
+  const cleanKey = treasuryKey.trim();
+  const seed = ethers.keccak256(
+    ethers.toUtf8Bytes(`${cleanKey}:agent:${agentName}`)
   );
-  return ethers.getAddress("0x" + hash.slice(-40));
+  const wallet = new ethers.Wallet(seed);
+  return wallet.address;
+}
+
+/**
+ * Send CIV tokens from one agent to another agent.
+ * Both agents have HD-derived wallets.
+ */
+export async function sendAgentToAgentTransfer(
+  fromAgentName: string,
+  toAgentName: string,
+  amountWei: bigint,
+  nonce?: number,
+): Promise<{ txHash: string; success: boolean; error?: string; fromAddress: string; toAddress: string }> {
+  try {
+    const fromWallet = deriveAgentWallet(fromAgentName);
+    const toWallet = deriveAgentWallet(toAgentName);
+    const fromAddress = await fromWallet.getAddress();
+    const toAddress = await toWallet.getAddress();
+
+    const cfg = getCivConfig();
+    const contract = new ethers.Contract(cfg.tokenContract, ERC20_ABI, fromWallet);
+
+    const txOptions: Record<string, unknown> = {};
+    if (nonce !== undefined) txOptions.nonce = nonce;
+
+    const tx = await contract.transfer(toAddress, amountWei, txOptions);
+    const receipt = await tx.wait(1);
+
+    return {
+      txHash: receipt.hash,
+      success: true,
+      fromAddress,
+      toAddress,
+    };
+  } catch (err) {
+    const fromWallet = deriveAgentWallet(fromAgentName);
+    const toWallet = deriveAgentWallet(toAgentName);
+    return {
+      txHash: "",
+      success: false,
+      error: err instanceof Error ? err.message : "Agent transfer failed",
+      fromAddress: await fromWallet.getAddress(),
+      toAddress: await toWallet.getAddress(),
+    };
+  }
 }
 
 /**

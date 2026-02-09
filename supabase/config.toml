@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.system-agents]
 verify_jwt = false
+
+[functions.treasury-verify]
+verify_jwt = false
+
+[functions.onchain-settle]
+verify_jwt = false

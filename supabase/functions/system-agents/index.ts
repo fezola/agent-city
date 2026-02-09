@@ -311,6 +311,25 @@ function getDefaultResponse(agentType: string) {
   }
 }
 
+// Retry with exponential backoff for rate-limited requests
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  maxRetries = 3
+): Promise<Response> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const response = await fetch(url, options);
+    if (response.status !== 429 || attempt === maxRetries) {
+      return response;
+    }
+    await response.text();
+    const delay = Math.min(1000 * Math.pow(2, attempt) + Math.random() * 500, 8000);
+    console.log(`Rate limited, retrying in ${Math.round(delay)}ms (attempt ${attempt + 1}/${maxRetries})`);
+    await new Promise(r => setTimeout(r, delay));
+  }
+  return await fetch(url, options);
+}
+
 // ==================== MAIN HANDLER ====================
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -372,22 +391,25 @@ serve(async (req) => {
 
     console.log(`Processing ${agentType} system agent`);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: "Analyze the current situation and make your assessment." }
-        ],
-        tools: [tool],
-        tool_choice: { type: "function", function: { name: toolName } },
-      }),
-    });
+    const response = await fetchWithRetry(
+      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-lite",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: "Analyze the current situation and make your assessment." }
+          ],
+          tools: [tool],
+          tool_choice: { type: "function", function: { name: toolName } },
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -424,7 +446,7 @@ serve(async (req) => {
         error: error instanceof Error ? error.message : "Unknown error",
         decision: getDefaultResponse('chaos')
       }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

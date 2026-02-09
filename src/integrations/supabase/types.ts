@@ -359,6 +359,72 @@ export type Database = {
           },
         ]
       }
+      onchain_transactions: {
+        Row: {
+          agent_id: string | null
+          agent_name: string | null
+          amount_civ: number
+          amount_wei: string | null
+          created_at: string
+          day: number
+          error_message: string | null
+          from_address: string
+          id: string
+          status: string
+          to_address: string
+          tx_hash: string | null
+          tx_type: string
+          world_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          agent_name?: string | null
+          amount_civ?: number
+          amount_wei?: string | null
+          created_at?: string
+          day: number
+          error_message?: string | null
+          from_address: string
+          id?: string
+          status?: string
+          to_address: string
+          tx_hash?: string | null
+          tx_type: string
+          world_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          agent_name?: string | null
+          amount_civ?: number
+          amount_wei?: string | null
+          created_at?: string
+          day?: number
+          error_message?: string | null
+          from_address?: string
+          id?: string
+          status?: string
+          to_address?: string
+          tx_hash?: string | null
+          tx_type?: string
+          world_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onchain_transactions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onchain_transactions_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: false
+            referencedRelation: "world_state"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wagers: {
         Row: {
           agent_id: string

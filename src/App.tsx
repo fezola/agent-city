@@ -13,6 +13,7 @@ import Governor from "./pages/Governor";
 import Workers from "./pages/Workers";
 import Merchants from "./pages/Merchants";
 import Wagers from "./pages/Wagers";
+import Transactions from "./pages/Transactions";
 import History from "./pages/History";
 import Story from "./pages/Story";
 import City from "./pages/City";
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/workers" element={<Workers />} />
               <Route path="/merchants" element={<Merchants />} />
               <Route path="/wagers" element={<Wagers />} />
+              <Route path="/transactions" element={<Transactions />} />
               <Route path="/history" element={<History />} />
               <Route path="/story" element={<Story />} />
               <Route path="/city" element={<City />} />

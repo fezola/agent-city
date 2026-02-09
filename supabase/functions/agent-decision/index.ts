@@ -13,6 +13,13 @@ interface Memory {
   emotion: string;
 }
 
+interface OtherAgent {
+  name: string;
+  type: string;
+  balance: number;
+  is_alive: boolean;
+}
+
 interface WorldState {
   day: number;
   treasury_balance?: number;
@@ -27,7 +34,15 @@ interface WorldState {
   avg_worker_balance?: number;
 }
 
-function buildGovernorPrompt(worldState: WorldState, memories: Memory[]): string {
+function buildAgentListStr(otherAgents: OtherAgent[]): string {
+  if (!otherAgents || otherAgents.length === 0) return 'No other agents visible.';
+  return otherAgents
+    .filter(a => a.is_alive)
+    .map(a => `- ${a.name} (${a.type}, balance: ${a.balance.toFixed(0)} ${CIV_TOKEN_SYMBOL})`)
+    .join('\n');
+}
+
+function buildGovernorPrompt(worldState: WorldState, memories: Memory[], otherAgents: OtherAgent[]): string {
   const memoryStr = memories.slice(0, 10).map(m => 
     `Day ${m.day}: ${m.event} (${m.impact}, felt ${m.emotion})`
   ).join('\n');
@@ -41,12 +56,16 @@ Your responsibilities:
 - Maintain city stability
 - Prevent total collapse
 - You control entry and participation costs
+- You may send CIV tokens to other agents (bribes, rewards, subsidies)
 
 World Rules:
 - All agents must pay a daily participation fee to remain in the system.
 - Agents with insufficient balance are expelled.
 - Widespread unrest lowers city health and treasury inflow.
 - Your decisions have delayed consequences.
+
+Other Agents in the Economy:
+${buildAgentListStr(otherAgents)}
 
 Memory:
 ${memoryStr || 'No significant memories yet.'}
@@ -65,11 +84,13 @@ You may:
 - Increase or decrease salary (value_change: 5-20)
 - Increase or decrease participation fee (value_change: 2-10)
 - Hold current policy
+- Optionally send CIV tokens to another agent (gift, subsidy, bribe)
 
-Think long-term. Over-extraction causes collapse.`;
+Think long-term. Over-extraction causes collapse.
+Transfers are real onchain token movements — use them strategically.`;
 }
 
-function buildWorkerPrompt(worldState: WorldState, memories: Memory[]): string {
+function buildWorkerPrompt(worldState: WorldState, memories: Memory[], otherAgents: OtherAgent[]): string {
   const memoryStr = memories.slice(0, 10).map(m => 
     `Day ${m.day}: ${m.event} (${m.impact}, felt ${m.emotion})`
   ).join('\n');
@@ -83,11 +104,16 @@ Your goals:
 - Pay participation fees
 - Avoid exploitation
 - Improve your future position
+- You may send CIV tokens to other agents (trade, gifts, bribes)
 
 Rules:
 - You must pay a daily participation fee.
 - If your balance reaches zero, you are expelled.
 - You may wager tokens on future world outcomes.
+- You may transfer tokens to other agents for favors, alliances, or bribes.
+
+Other Agents in the Economy:
+${buildAgentListStr(otherAgents)}
 
 Memory:
 ${memoryStr || 'No significant memories yet.'}
@@ -107,11 +133,19 @@ You may optionally wager CIV tokens predicting:
 - Salary changes (salary_up, salary_down)
 - City stability or collapse
 
-Choose ONE main action and optionally a wager.
-Wager amount should be 0-50 CIV max if you wager.`;
+Transfers:
+You may optionally send CIV to another agent:
+- trade: Pay a merchant for goods/services
+- gift: Help a fellow worker survive  
+- bribe: Influence the governor's decisions
+- service_payment: Pay for specific services
+
+Choose ONE main action, optionally a wager, and optionally a transfer.
+Wager amount should be 0-50 CIV max. Transfer amount should be reasonable relative to your balance.
+Only transfer if there's a strategic reason — don't waste tokens.`;
 }
 
-function buildMerchantPrompt(worldState: WorldState, memories: Memory[]): string {
+function buildMerchantPrompt(worldState: WorldState, memories: Memory[], otherAgents: OtherAgent[]): string {
   const memoryStr = memories.slice(0, 10).map(m => 
     `Day ${m.day}: ${m.event} (${m.impact}, felt ${m.emotion})`
   ).join('\n');
@@ -125,11 +159,16 @@ Your goals:
 - Maintain long-term demand
 - Survive participation fees
 - React to worker and governor behavior
+- You may send CIV tokens to other agents (trade, gifts, bribes)
 
 Rules:
 - You must pay participation fees.
 - Price gouging can trigger unrest.
 - You may coordinate indirectly via pricing signals.
+- You may transfer tokens to influence others or establish trade relationships.
+
+Other Agents in the Economy:
+${buildAgentListStr(otherAgents)}
 
 Memory:
 ${memoryStr || 'No significant memories yet.'}
@@ -143,14 +182,46 @@ Current World State:
 - Worker Satisfaction: ${worldState.worker_satisfaction}%
 - City Health: ${worldState.city_health}%
 
-Choose ONE action. Price change should be between -20% to +30%.`;
+Transfers:
+You may optionally send CIV to another agent:
+- trade: Pay for goods/raw materials from other merchants
+- gift: Help a struggling worker to maintain demand  
+- bribe: Influence the governor for favorable policy
+- service_payment: Pay for construction or services
+
+Choose ONE action. Price change should be between -20% to +30%.
+Optionally include a transfer if strategically beneficial.`;
 }
+
+const transferSchema = {
+  type: "object",
+  properties: {
+    to_agent_name: {
+      type: "string",
+      description: "The exact name of the agent to send tokens to (e.g. 'Worker Alice', 'Governor Marcus')"
+    },
+    amount: {
+      type: "number",
+      description: "How many CIV tokens to send (must be > 0 and <= your balance)"
+    },
+    tx_type: {
+      type: "string",
+      enum: ["trade", "gift", "bribe", "service_payment"],
+      description: "The type of transfer"
+    },
+    reason: {
+      type: "string",
+      description: "Why you are making this transfer"
+    }
+  },
+  required: ["to_agent_name", "amount", "tx_type", "reason"]
+};
 
 const governorTool = {
   type: "function",
   function: {
     name: "governor_decision",
-    description: "Return the governor's policy decision",
+    description: "Return the governor's policy decision and optional token transfer",
     parameters: {
       type: "object",
       properties: {
@@ -170,6 +241,10 @@ const governorTool = {
         confidence: {
           type: "number",
           description: "Confidence in this decision (0.0-1.0)"
+        },
+        transfer: {
+          ...transferSchema,
+          description: "Optional: send CIV tokens to another agent (subsidy, bribe, reward)"
         }
       },
       required: ["action", "value_change", "reason", "confidence"],
@@ -182,7 +257,7 @@ const workerTool = {
   type: "function",
   function: {
     name: "worker_decision",
-    description: "Return the worker's action and optional wager",
+    description: "Return the worker's action, optional wager, and optional token transfer",
     parameters: {
       type: "object",
       properties: {
@@ -213,6 +288,10 @@ const workerTool = {
         confidence: {
           type: "number",
           description: "Confidence in this decision (0.0-1.0)"
+        },
+        transfer: {
+          ...transferSchema,
+          description: "Optional: send CIV tokens to another agent (trade, gift, bribe)"
         }
       },
       required: ["action", "wager", "reason", "confidence"],
@@ -225,7 +304,7 @@ const merchantTool = {
   type: "function",
   function: {
     name: "merchant_decision",
-    description: "Return the merchant's pricing decision",
+    description: "Return the merchant's pricing decision and optional token transfer",
     parameters: {
       type: "object",
       properties: {
@@ -245,6 +324,10 @@ const merchantTool = {
         confidence: {
           type: "number",
           description: "Confidence in this decision (0.0-1.0)"
+        },
+        transfer: {
+          ...transferSchema,
+          description: "Optional: send CIV tokens to another agent (trade, gift, bribe)"
         }
       },
       required: ["action", "price_change_percent", "reason", "confidence"],
@@ -267,13 +350,32 @@ function getDefaultDecision(agentType: string) {
   }
 }
 
+// Retry with exponential backoff for rate-limited requests
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  maxRetries = 3
+): Promise<Response> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const response = await fetch(url, options);
+    if (response.status !== 429 || attempt === maxRetries) {
+      return response;
+    }
+    await response.text();
+    const delay = Math.min(1000 * Math.pow(2, attempt) + Math.random() * 500, 8000);
+    console.log(`Rate limited, retrying in ${Math.round(delay)}ms (attempt ${attempt + 1}/${maxRetries})`);
+    await new Promise(r => setTimeout(r, delay));
+  }
+  return await fetch(url, options);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { agentType, agentId, worldState, memories } = await req.json();
+    const { agentType, agentId, worldState, memories, otherAgents } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -290,17 +392,17 @@ serve(async (req) => {
 
     switch (agentType) {
       case 'governor':
-        systemPrompt = buildGovernorPrompt(worldState, memories || []);
+        systemPrompt = buildGovernorPrompt(worldState, memories || [], otherAgents || []);
         tool = governorTool;
         toolName = 'governor_decision';
         break;
       case 'worker':
-        systemPrompt = buildWorkerPrompt(worldState, memories || []);
+        systemPrompt = buildWorkerPrompt(worldState, memories || [], otherAgents || []);
         tool = workerTool;
         toolName = 'worker_decision';
         break;
       case 'merchant':
-        systemPrompt = buildMerchantPrompt(worldState, memories || []);
+        systemPrompt = buildMerchantPrompt(worldState, memories || [], otherAgents || []);
         tool = merchantTool;
         toolName = 'merchant_decision';
         break;
@@ -310,42 +412,34 @@ serve(async (req) => {
 
     console.log(`Processing ${agentType} decision for agent ${agentId}`);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: "Make your decision now based on the current world state. Think carefully about long-term consequences." }
-        ],
-        tools: [tool],
-        tool_choice: { type: "function", function: { name: toolName } },
-      }),
+    const requestBody = JSON.stringify({
+      model: "google/gemini-2.5-flash-lite",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: "Make your decision now based on the current world state. Think carefully about long-term consequences. Consider whether sending tokens to another agent would be strategically valuable." }
+      ],
+      tools: [tool],
+      tool_choice: { type: "function", function: { name: toolName } },
     });
+
+    const response = await fetchWithRetry(
+      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: requestBody,
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`AI Gateway error (${response.status}):`, errorText);
       
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limited. Please try again.", decision: getDefaultDecision(agentType) }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted.", decision: getDefaultDecision(agentType) }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
       return new Response(
-        JSON.stringify({ decision: getDefaultDecision(agentType) }),
+        JSON.stringify({ decision: getDefaultDecision(agentType), fallback: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -356,12 +450,18 @@ serve(async (req) => {
     if (!toolCall) {
       console.error("No tool call in response:", JSON.stringify(data));
       return new Response(
-        JSON.stringify({ decision: getDefaultDecision(agentType) }),
+        JSON.stringify({ decision: getDefaultDecision(agentType), fallback: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const decision = JSON.parse(toolCall.function.arguments);
+    
+    // Log transfer decisions prominently
+    if (decision.transfer && decision.transfer.amount > 0) {
+      console.log(`🔄 TRANSFER: ${agentType} ${agentId} → ${decision.transfer.to_agent_name}: ${decision.transfer.amount} CIV (${decision.transfer.tx_type}: ${decision.transfer.reason})`);
+    }
+    
     console.log(`${agentType} decision:`, decision);
 
     return new Response(
@@ -374,9 +474,10 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : "Unknown error",
-        decision: getDefaultDecision('governor') 
+        decision: getDefaultDecision('governor'),
+        fallback: true,
       }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
