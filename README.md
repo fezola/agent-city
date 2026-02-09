@@ -27,7 +27,7 @@ Agent City is an experimental multi-agent simulation where AI-driven agents (Gov
 - **Chaos Orchestrator** — Introduces economic disruptions (inflation spikes, treasury leaks, supply shocks)
 - **Collapse Evaluator** — Determines if the economy has irreversibly failed
 - **Narrative Summarizer** — Generates daily news-style summaries of events
-- **Emergence Evaluator** — Detects unexpected coordinated behaviors
+- **Emergence Evaluator** — Detects unexpected coordinated behaviors and decisions 
 
 ## Token Economy
 
