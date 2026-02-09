@@ -90,6 +90,12 @@ export default function City() {
       if (activePhaseType === 'governor' && cell.type === 'government') {
         highlights[key] = 'gov-phase-glow';
       }
+      if (activePhaseType === 'worker' && cell.type === 'worker') {
+        highlights[key] = 'worker-phase-glow';
+      }
+      if (activePhaseType === 'merchant' && cell.type === 'merchant') {
+        highlights[key] = 'merchant-phase-glow';
+      }
     }
     return highlights;
   }, [activePhaseType]);
