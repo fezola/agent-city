@@ -20,7 +20,7 @@ Agent City is an experimental multi-agent simulation where AI-driven agents (Gov
 |-------|------|-----------|
 | **Governor** | Sets economic policy | Tax rates, salaries, participation fees |
 | **Workers** (4) | Labor force | Work, protest, negotiate, wager on outcomes |
-| **Merchants** (2) | Market participants | Set prices, stabilize or exploit markets |
+| **Merchants** (2) | Market participants | Set prices, stabilize or exploit markets 
 
 ### System Agents
 
