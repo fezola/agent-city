@@ -19,7 +19,7 @@ export function IsometricGrid({
   return (
     <div
       className={cn(
-        'rpg-grid',
+        'rpg-grid relative',
         isCollapsed && 'collapsed-filter',
         className,
       )}
@@ -27,6 +27,7 @@ export function IsometricGrid({
         display: 'grid',
         gridTemplateColumns: `repeat(${GRID_COLS}, ${TILE_SIZE}px)`,
         gridTemplateRows: `repeat(${GRID_ROWS}, ${TILE_SIZE}px)`,
+        boxShadow: '0 0 60px rgba(255, 171, 64, 0.08), 0 0 120px rgba(255, 171, 64, 0.04)',
       }}
     >
       {GRID_CELLS.map((cell) => {

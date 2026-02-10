@@ -1,6 +1,6 @@
 // City grid layout constants and agent slot assignments
 
-export type CellType = 'grass' | 'road' | 'government' | 'worker' | 'merchant' | 'park' | 'water';
+export type CellType = 'grass' | 'road' | 'government' | 'worker' | 'merchant' | 'park' | 'water' | 'plaza';
 
 export interface GridCell {
   row: number;
@@ -8,24 +8,35 @@ export interface GridCell {
   type: CellType;
 }
 
-// 14x10 grid layout — RPG pixel-art town
-// G=Government  W=Worker  M=Merchant  R=Road  P=Park  ~=Water  .=Grass
+// Decoration types for environmental sprites
+export type DecoType = 'tree' | 'lantern' | 'barrel' | 'crate' | 'bush' | 'flower' | 'coral' | 'well' | 'sign' | 'torch' | 'bench' | 'cart' | 'flag' | 'mushroom' | 'rock' | 'campfire';
+
+export interface DecoPlacement {
+  row: number;
+  col: number;
+  type: DecoType;
+}
+
+// 16x12 grid layout — Expanded RPG pixel-art town
+// G=Government  W=Worker  M=Merchant  R=Road  P=Park  ~=Water  .=Grass  X=Plaza
 const GRID_TEMPLATE: string[][] = [
-  ['.', '.', '.', '.', 'G', 'G', 'G', 'G', 'G', 'G', '.', '.', '.', '.'],
-  ['.', '.', '.', 'R', 'G', 'G', 'G', 'G', 'G', 'G', 'R', '.', '.', '.'],
-  ['.', 'W', 'W', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'M', 'M', '.'],
-  ['.', 'W', 'W', 'R', '.', '.', '.', '.', '.', '.', 'R', 'M', 'M', '.'],
-  ['.', 'W', 'W', 'R', '.', 'P', 'P', 'P', 'P', '.', 'R', 'M', 'M', '.'],
-  ['.', 'W', 'W', 'R', '.', 'P', 'P', 'P', 'P', '.', 'R', 'M', 'M', '.'],
-  ['.', '.', '.', 'R', '.', '.', '.', '.', '.', '.', 'R', '.', '.', '.'],
-  ['.', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', '.'],
-  ['~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~'],
-  ['~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~'],
+  ['.', '.', '.', '.', '.', 'G', 'G', 'G', 'G', 'G', 'G', '.', '.', '.', '.', '.'],
+  ['.', '.', '.', '.', 'R', 'G', 'G', 'G', 'G', 'G', 'G', 'R', '.', '.', '.', '.'],
+  ['.', '.', 'W', 'W', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'M', 'M', '.', '.'],
+  ['.', '.', 'W', 'W', 'R', '.', '.', '.', '.', '.', '.', 'R', 'M', 'M', '.', '.'],
+  ['.', '.', 'W', 'W', 'R', '.', 'X', 'P', 'P', 'X', '.', 'R', 'M', 'M', '.', '.'],
+  ['.', '.', 'W', 'W', 'R', '.', 'P', 'P', 'P', 'P', '.', 'R', 'M', 'M', '.', '.'],
+  ['.', '.', 'W', 'W', 'R', '.', 'X', 'P', 'P', 'X', '.', 'R', 'M', 'M', '.', '.'],
+  ['.', '.', '.', '.', 'R', '.', '.', '.', '.', '.', '.', 'R', '.', '.', '.', '.'],
+  ['.', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', '.'],
+  ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],
+  ['~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~'],
+  ['~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~'],
 ];
 
-export const GRID_ROWS = 10;
-export const GRID_COLS = 14;
-export const TILE_SIZE = 48; // px — smaller tiles for pixel-art RPG feel
+export const GRID_ROWS = 12;
+export const GRID_COLS = 16;
+export const TILE_SIZE = 48; // px — pixel-art RPG feel
 
 const CHAR_TO_TYPE: Record<string, CellType> = {
   '.': 'grass',
@@ -35,6 +46,7 @@ const CHAR_TO_TYPE: Record<string, CellType> = {
   'M': 'merchant',
   'P': 'park',
   '~': 'water',
+  'X': 'plaza',
 };
 
 export const GRID_CELLS: GridCell[] = GRID_TEMPLATE.flatMap((row, r) =>
@@ -45,8 +57,110 @@ export const GRID_CELLS: GridCell[] = GRID_TEMPLATE.flatMap((row, r) =>
   }))
 );
 
+// Environmental decorations placed on specific cells
+export const DECORATIONS: DecoPlacement[] = [
+  // Trees around the edges
+  { row: 0, col: 0, type: 'tree' },
+  { row: 0, col: 1, type: 'tree' },
+  { row: 0, col: 2, type: 'bush' },
+  { row: 0, col: 14, type: 'tree' },
+  { row: 0, col: 15, type: 'tree' },
+  { row: 1, col: 0, type: 'bush' },
+  { row: 1, col: 1, type: 'flower' },
+  { row: 1, col: 14, type: 'flower' },
+  { row: 1, col: 15, type: 'bush' },
+  { row: 9, col: 0, type: 'tree' },
+  { row: 9, col: 1, type: 'bush' },
+  { row: 9, col: 2, type: 'rock' },
+  { row: 9, col: 13, type: 'rock' },
+  { row: 9, col: 14, type: 'bush' },
+  { row: 9, col: 15, type: 'tree' },
+  // Lanterns along roads
+  { row: 2, col: 5, type: 'lantern' },
+  { row: 2, col: 10, type: 'lantern' },
+  { row: 8, col: 3, type: 'lantern' },
+  { row: 8, col: 12, type: 'lantern' },
+  // Barrels and crates in worker/merchant zones  
+  { row: 3, col: 5, type: 'barrel' },
+  { row: 7, col: 5, type: 'crate' },
+  { row: 3, col: 10, type: 'crate' },
+  { row: 7, col: 10, type: 'barrel' },
+  // Park decorations
+  { row: 4, col: 6, type: 'well' },
+  { row: 4, col: 9, type: 'bench' },
+  { row: 6, col: 6, type: 'bench' },
+  { row: 6, col: 9, type: 'campfire' },
+  // Torches at government zone
+  { row: 0, col: 5, type: 'torch' },
+  { row: 0, col: 10, type: 'torch' },
+  // Signs near merchant area
+  { row: 1, col: 13, type: 'sign' },
+  // Mushrooms and flowers near water
+  { row: 9, col: 5, type: 'mushroom' },
+  { row: 9, col: 6, type: 'flower' },
+  { row: 9, col: 9, type: 'flower' },
+  { row: 9, col: 10, type: 'mushroom' },
+  // Coral in water
+  { row: 10, col: 3, type: 'coral' },
+  { row: 10, col: 7, type: 'coral' },
+  { row: 10, col: 12, type: 'coral' },
+  { row: 11, col: 5, type: 'coral' },
+  { row: 11, col: 10, type: 'coral' },
+  // Extra atmosphere
+  { row: 0, col: 3, type: 'rock' },
+  { row: 0, col: 12, type: 'rock' },
+  { row: 7, col: 0, type: 'tree' },
+  { row: 7, col: 15, type: 'tree' },
+  { row: 3, col: 0, type: 'tree' },
+  { row: 3, col: 15, type: 'tree' },
+  { row: 1, col: 2, type: 'flag' },
+  { row: 1, col: 13, type: 'flag' },
+  // Cart near market
+  { row: 3, col: 14, type: 'cart' },
+];
+
+// Zone buildings - permanent structures on zone tiles that make districts look real
+// key: "row-col", value: { zone: 'worker'|'merchant'|'government', variant: number }
+export interface ZoneBuildingEntry {
+  zone: 'worker' | 'merchant' | 'government';
+  variant: number;
+}
+
+export const ZONE_BUILDINGS: Record<string, ZoneBuildingEntry> = {
+  // Government zone buildings
+  '0-5': { zone: 'government', variant: 2 },  // Tower
+  '0-6': { zone: 'government', variant: 0 },  // Main hall (has zone label)
+  '0-8': { zone: 'government', variant: 3 },  // Archive
+  '0-9': { zone: 'government', variant: 1 },  // Hall
+  '1-5': { zone: 'government', variant: 3 },  // Archive
+  '1-6': { zone: 'government', variant: 1 },  // Hall
+  '1-9': { zone: 'government', variant: 2 },  // Tower
+  '1-10': { zone: 'government', variant: 0 }, // Main
+  // Worker zone buildings
+  '2-2': { zone: 'worker', variant: 0 },   // House 1
+  '2-3': { zone: 'worker', variant: 2 },   // Workshop
+  '3-2': { zone: 'worker', variant: 1 },   // House 2
+  '3-3': { zone: 'worker', variant: 3 },   // Barracks
+  '4-2': { zone: 'worker', variant: 2 },   // Workshop
+  '4-3': { zone: 'worker', variant: 0 },   // House 1
+  '5-2': { zone: 'worker', variant: 3 },   // Barracks
+  '5-3': { zone: 'worker', variant: 1 },   // House 2
+  '6-2': { zone: 'worker', variant: 0 },   // House 1
+  '6-3': { zone: 'worker', variant: 2 },   // Workshop
+  // Merchant zone buildings
+  '2-12': { zone: 'merchant', variant: 0 },  // Shop 1
+  '2-13': { zone: 'merchant', variant: 2 },  // Tavern
+  '3-12': { zone: 'merchant', variant: 1 },  // Shop 2
+  '3-13': { zone: 'merchant', variant: 3 },  // Warehouse
+  '4-12': { zone: 'merchant', variant: 2 },  // Tavern
+  '4-13': { zone: 'merchant', variant: 0 },  // Shop 1
+  '5-12': { zone: 'merchant', variant: 3 },  // Warehouse
+  '5-13': { zone: 'merchant', variant: 1 },  // Shop 2
+  '6-12': { zone: 'merchant', variant: 0 },  // Shop 1
+  '6-13': { zone: 'merchant', variant: 2 },  // Tavern
+};
+
 // Cell type -> CSS colors (now handled in IsometricTile.tsx with CSS classes)
-// Keeping these for backwards compatibility
 export const CELL_COLORS: Record<CellType, string> = {
   grass: 'bg-emerald-900',
   road: 'bg-zinc-700',
@@ -55,6 +169,7 @@ export const CELL_COLORS: Record<CellType, string> = {
   merchant: 'bg-purple-900',
   park: 'bg-green-800',
   water: 'bg-cyan-900',
+  plaza: 'bg-amber-800',
 };
 
 export const CELL_BORDERS: Record<CellType, string> = {
@@ -65,38 +180,37 @@ export const CELL_BORDERS: Record<CellType, string> = {
   merchant: 'border-purple-600',
   park: 'border-green-600',
   water: 'border-cyan-700',
+  plaza: 'border-amber-500',
 };
 
 // Fixed agent slot assignments: agentName -> [row, col]
-// Governor in government zone, workers in worker quarter, merchants in merchant quarter
 export const AGENT_SLOTS: Record<string, [number, number]> = {
-  'Governor Marcus': [0, 6],
-  'Alice': [2, 1],
-  'Bob': [2, 2],
-  'Charlie': [3, 1],
-  'Diana': [3, 2],
-  'Zhao': [2, 11],
-  'Kumar': [2, 12],
+  'Governor Marcus': [0, 7],
+  'Alice': [3, 2],
+  'Bob': [3, 3],
+  'Charlie': [4, 2],
+  'Diana': [4, 3],
+  'Zhao': [3, 12],
+  'Kumar': [3, 13],
 };
 
-// Building placement cells (where buildings can appear)
-// These are DIFFERENT from agent slots so buildings don't overlap with agents
+// Building placement cells
 export const BUILDING_CELLS: Record<string, [number, number]> = {
-  'Governor Marcus': [1, 7],   // Government zone, different from agent slot
-  'Alice': [4, 1],             // Worker zone
-  'Bob': [4, 2],               // Worker zone
-  'Charlie': [5, 1],           // Worker zone
-  'Diana': [5, 2],             // Worker zone
-  'Zhao': [4, 11],             // Merchant zone
-  'Kumar': [4, 12],            // Merchant zone
+  'Governor Marcus': [1, 8],
+  'Alice': [5, 2],
+  'Bob': [5, 3],
+  'Charlie': [6, 2],
+  'Diana': [6, 3],
+  'Zhao': [5, 12],
+  'Kumar': [5, 13],
 };
 
-// Zone labels to show on the grid (placed at specific cells)
+// Zone labels to show on the grid
 export const ZONE_LABELS: { row: number; col: number; label: string; color: string }[] = [
-  { row: 0, col: 5, label: 'TOWN HALL', color: 'text-amber-400' },
-  { row: 3, col: 1, label: 'WORKER QUARTER', color: 'text-blue-400' },
-  { row: 3, col: 11, label: 'MARKET DISTRICT', color: 'text-purple-400' },
-  { row: 4, col: 6, label: 'TOWN SQUARE', color: 'text-green-400' },
+  { row: 0, col: 7, label: 'TOWN HALL', color: 'text-amber-400' },
+  { row: 2, col: 2, label: 'WORKER QUARTER', color: 'text-blue-400' },
+  { row: 2, col: 12, label: 'MARKET DISTRICT', color: 'text-purple-400' },
+  { row: 5, col: 7, label: 'TOWN SQUARE', color: 'text-green-400' },
 ];
 
 // Legend entries for the city map
@@ -106,7 +220,7 @@ export const ZONE_LEGEND: { type: CellType; label: string; color: string }[] = [
   { type: 'merchant', label: 'Merchants', color: 'bg-purple-700' },
   { type: 'road', label: 'Roads', color: 'bg-zinc-500' },
   { type: 'park', label: 'Park', color: 'bg-green-700' },
-  { type: 'water', label: 'Water', color: 'bg-cyan-700' },
+  { type: 'water', label: 'River', color: 'bg-cyan-700' },
 ];
 
 // Agent role descriptions for the guide
